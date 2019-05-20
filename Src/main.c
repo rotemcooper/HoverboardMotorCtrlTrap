@@ -35,6 +35,7 @@ extern volatile adc_buf_t adc_buffer;
 //LCD_PCF8574_HandleTypeDef lcd;
 extern I2C_HandleTypeDef hi2c2;
 extern UART_HandleTypeDef huart2;
+extern void consoleLog(char *message);
 
 int cmd1;  // normalized input values. -1000 to 1000
 int cmd2;
@@ -81,7 +82,8 @@ extern volatile uint16_t ppm_captured_value[PPM_NUM_CHANNELS+1];
 int milli_vel_error_sum = 0;
 
 //rotemc
-/*
+extern DMA_HandleTypeDef hdma_usart2_rx;
+
 int Uart_get_char( char* c ) 
 {
 	unsigned int dma_count;
@@ -92,7 +94,7 @@ int Uart_get_char( char* c )
 	//}
 	
 	// If no data received, return.
-	dma_count =  UART_RX_BUFF_SIZE - __HAL_DMA_GET_COUNTER(&huart2);
+	dma_count =  UART_RX_BUFF_SIZE - __HAL_DMA_GET_COUNTER(&hdma_usart2_rx);
 	if( dma_count == rx_index ) {
 		return 0;
 	}
@@ -102,7 +104,7 @@ int Uart_get_char( char* c )
 	
 	return 1;
 }
-*/
+
 //rotemc
 
 void poweroff() {
@@ -181,7 +183,7 @@ int main(void) {
     UART_Control_Init();
     //rotemc
     //HAL_UART_Receive_DMA(&huart2, (uint8_t *)&command, 4);
-    //HAL_UART_Receive_DMA(&huart2, (uint8_t*)uart_rx_buff, UART_RX_BUFF_SIZE);
+    HAL_UART_Receive_DMA(&huart2, (uint8_t*)uart_rx_buff, UART_RX_BUFF_SIZE);
     //rotemc
 
   #endif
@@ -212,7 +214,7 @@ int main(void) {
   float board_temp_deg_c;
 
   enable = 1;  // enable motors
-
+  uint16_t rx_count = 0; //rotemc
   while(1) {
     HAL_Delay(DELAY_IN_MAIN_LOOP); //delay in ms
 
@@ -248,11 +250,27 @@ int main(void) {
       cmd1 = CLAMP((int16_t)command.steer, -1000, 1000);
       cmd2 = CLAMP((int16_t)command.speed, -1000, 1000);
       
+      char output[32];
       char c;
-      if( HAL_OK == HAL_UART_Receive( &huart2, (uint8_t*)&c, sizeof(c), 1) ) {
-        HAL_UART_Transmit( &huart2, (uint8_t*)&c, sizeof(c), 10 );
+      if( Uart_get_char(&c) > 0 ) {
+        HAL_UART_Transmit( &huart2, (uint8_t*)&c, sizeof(c), 200 );
+        switch( c )
+        {
+          case '+':
+            pwmr += 10;
+			      break;
+            
+          case '-':
+            pwmr -= 10;
+			      break;
+			  
+		      case '0':
+            pwmr = 10;
+		       	break;
+        }
+        sprintf( output, "\npwmr=%d\n", pwmr );
       }
-
+      
       timeout = 0;
     #endif
 
@@ -287,6 +305,7 @@ int main(void) {
     }
 */
    //rotemc
+
     lastSpeedL = speedL;
     lastSpeedR = speedR;
 
