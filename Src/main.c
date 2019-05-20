@@ -47,6 +47,11 @@ typedef struct{
 } Serialcommand;
 
 volatile Serialcommand command;
+//rotemc
+#define UART_RX_BUFF_SIZE 128
+volatile char uart_rx_buff[UART_RX_BUFF_SIZE];
+unsigned int uart_rx_index = 0;
+//rotemc
 
 uint8_t button1, button2;
 
@@ -75,6 +80,30 @@ extern volatile uint16_t ppm_captured_value[PPM_NUM_CHANNELS+1];
 
 int milli_vel_error_sum = 0;
 
+//rotemc
+/*
+int Uart_get_char( char* c ) 
+{
+	unsigned int dma_count;
+	unsigned int rx_index = uart_rx_index;	
+
+	//if (!uart.RX_available) {
+	//	return 0;
+	//}
+	
+	// If no data received, return.
+	dma_count =  UART_RX_BUFF_SIZE - __HAL_DMA_GET_COUNTER(&huart2);
+	if( dma_count == rx_index ) {
+		return 0;
+	}
+
+	*c = uart_rx_buff[rx_index++];
+	uart_rx_index = rx_index % UART_RX_BUFF_SIZE;
+	
+	return 1;
+}
+*/
+//rotemc
 
 void poweroff() {
     if (abs(speed) < 20) {
@@ -150,7 +179,11 @@ int main(void) {
 
   #ifdef CONTROL_SERIAL_USART2
     UART_Control_Init();
-    HAL_UART_Receive_DMA(&huart2, (uint8_t *)&command, 4);
+    //rotemc
+    //HAL_UART_Receive_DMA(&huart2, (uint8_t *)&command, 4);
+    //HAL_UART_Receive_DMA(&huart2, (uint8_t*)uart_rx_buff, UART_RX_BUFF_SIZE);
+    //rotemc
+
   #endif
 
   #ifdef DEBUG_I2C_LCD
@@ -214,6 +247,11 @@ int main(void) {
     #ifdef CONTROL_SERIAL_USART2
       cmd1 = CLAMP((int16_t)command.steer, -1000, 1000);
       cmd2 = CLAMP((int16_t)command.speed, -1000, 1000);
+      
+      char c;
+      if( HAL_OK == HAL_UART_Receive( &huart2, (uint8_t*)&c, sizeof(c), 1) ) {
+        HAL_UART_Transmit( &huart2, (uint8_t*)&c, sizeof(c), 10 );
+      }
 
       timeout = 0;
     #endif
@@ -232,8 +270,8 @@ int main(void) {
     #ifdef ADDITIONAL_CODE
       ADDITIONAL_CODE;
     #endif
-
-
+//rotemc
+/* 
     // ####### SET OUTPUTS #######
     if ((speedL < lastSpeedL + 50 && speedL > lastSpeedL - 50) && (speedR < lastSpeedR + 50 && speedR > lastSpeedR - 50) && timeout < TIMEOUT) {
     #ifdef INVERT_R_DIRECTION
@@ -245,9 +283,10 @@ int main(void) {
       pwml = -speedL;
     #else
       pwml = speedL;
-    #endif
+    #endif    
     }
-
+*/
+   //rotemc
     lastSpeedL = speedL;
     lastSpeedR = speedR;
 
