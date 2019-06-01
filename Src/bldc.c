@@ -185,6 +185,12 @@ volatile uint posr_last=0;
 volatile uint motorl_ticks=0;
 volatile uint motorr_ticks=0;
 
+volatile uint motorl_ticks_last=0;
+volatile uint motorr_ticks_last=0;
+
+volatile int motorl_dir=1;
+volatile int motorr_dir=1;
+
 volatile uint motorl_speed=0;
 volatile uint motorr_speed=0;
 
@@ -261,12 +267,15 @@ void DMA1_Channel1_IRQHandler() {
   //------------------------------------------------------------------------------
   
   if( posl != posl_last ) {
-    motorl_ticks += hall_tbl[posl_last][posl];
-    motorl_speed = isr_cnt - posl_isr_cnt;
-    motorl_res = motorl_speed/16;
-    
-    posl_isr_cnt = isr_cnt;
+    posl_last = posl;
 
+    motorl_ticks += hall_tbl[posl_last][posl];
+    motorl_dir = (motorl_ticks > motorl_ticks_last) ? 1 : -1;
+    motorl_ticks_last = motorl_ticks;
+
+    motorl_speed = isr_cnt - posl_isr_cnt;
+    posl_isr_cnt = isr_cnt;
+    motorl_res = motorl_speed/16;
   }
 
   //------------------------------------------------------------------------------
