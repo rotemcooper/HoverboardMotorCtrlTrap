@@ -261,7 +261,7 @@ void DMA1_Channel1_IRQHandler() {
   //------------------------------------------------------------------------------
   
   if( posl != posl_last ) {
-    motorl_ticks +- hall_tbl[posl_last][posl];
+    motorl_ticks += hall_tbl[posl_last][posl];
     motorl_speed = isr_cnt - posl_isr_cnt;
     motorl_res = motorl_speed/16;
     
