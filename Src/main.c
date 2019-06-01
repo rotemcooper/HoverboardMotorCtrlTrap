@@ -121,6 +121,8 @@ void poweroff() {
 }
 
 
+extern uint64_t isr_cnt; //rotemc
+
 int main(void) {
   HAL_Init();
   __HAL_RCC_AFIO_CLK_ENABLE();
@@ -214,7 +216,9 @@ int main(void) {
   float board_temp_deg_c;
 
   enable = 1;  // enable motors
-  uint16_t rx_count = 0; //rotemc
+  uint32_t counter = HAL_GetTick(); //rotemc
+  
+  
   while(1) {
     HAL_Delay(DELAY_IN_MAIN_LOOP); //delay in ms
 
@@ -257,21 +261,36 @@ int main(void) {
         switch( c )
         {
           case '+':
-            pwmr += 10;
+            pwml += 10;
 			      break;
             
           case '-':
-            pwmr -= 10;
+            pwml -= 10;
 			      break;
 			  
 		      case '0':
-            pwmr = 10;
+            pwml = 0;
 		       	break;
+          
+          case 's':
+            poweroff();
+            break;
+          
+          case '\n':
+            sprintf( output, "\npwml=%d\n", pwml );
+            HAL_UART_Transmit( &huart2, output, strlen(output), 200);
+            break;
         }
-        sprintf( output, "\npwmr=%d\n", pwmr );
+        
       }
       
       timeout = 0;
+      HAL_GetTick();
+      if( HAL_GetTick() >= counter + 1000 ) {
+        counter = HAL_GetTick();
+        sprintf( output, "isr counter=%d\n", isr_cnt );
+        HAL_UART_Transmit( &huart2, output, strlen(output), 200);
+      }
     #endif
 
 

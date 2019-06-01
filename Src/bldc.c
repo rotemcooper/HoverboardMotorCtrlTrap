@@ -26,17 +26,26 @@ uint8_t enable = 0;
 const int pwm_res = 64000000 / 2 / PWM_FREQ; // = 2000
 
 const uint8_t hall_to_pos[8] = {
-    0,
-    0,
-    2,
-    1,
-    4,
-    5,
-    3,
-    0,
+    0, //000
+    0, //001
+    2, //010
+    1, //011
+    4, //100
+    5, //101
+    3, //110
+    0, //111
 };
 
 inline void blockPWM(int pwm, int pos, int *u, int *v, int *w) {
+  
+  //rotemc
+  //*u = pwm;
+  //*v = pwm;
+  //*w = pwm;
+  //return;
+  //rotemc
+  
+  
   switch(pos) {
     case 0:
       *u = 0;
@@ -143,10 +152,29 @@ int timer = 0;
 const int max_time = PWM_FREQ / 10;
 volatile int vel = 0;
 
+//rotemc --------------------------------------------------------
+#define ALPHA 0
+int ull=0, vll=0, wll=0;
+int urr=0, vrr=0, wrr=0;
+
+volatile uint64_t isr_cnt=0;
+volatile uint64_t isr_cnt_posl=0;
+volatile uint64_t isr_cnt_posr=0;
+
+volatile uint posl_last=0;
+volatile uint posr_last=0;
+
+
+
+//rotemc --------------------------------------------------------
+
 //scan 8 channels with 2ADCs @ 20 clk cycles per sample
 //meaning ~80 ADC clock cycles @ 8MHz until new DMA interrupt =~ 100KHz
 //=640 cpu cycles
 void DMA1_Channel1_IRQHandler() {
+  //rotemc
+  isr_cnt++;
+
   DMA1->IFCR = DMA_IFCR_CTCIF1;
   // HAL_GPIO_WritePin(LED_PORT, LED_PIN, 1);
 
@@ -181,7 +209,7 @@ void DMA1_Channel1_IRQHandler() {
   }
 
   int ul, vl, wl;
-  int ur, vr, wr;
+  int ur, vr, wr;  
 
   //determine next position based on hall sensors
   uint8_t hall_ul = !(LEFT_HALL_U_PORT->IDR & LEFT_HALL_U_PIN);
@@ -201,6 +229,10 @@ void DMA1_Channel1_IRQHandler() {
   posr          = hall_to_pos[hallr];
   posr += 2;
   posr %= 6;
+
+  if( posr != posr_last ) {
+
+  }
 
   blockPhaseCurrent(posl, adc_buffer.rl1 - offsetrl1, adc_buffer.rl2 - offsetrl2, &curl);
 
@@ -249,6 +281,7 @@ void DMA1_Channel1_IRQHandler() {
   blockPWM(pwml, posl, &ul, &vl, &wl);
   blockPWM(pwmr, posr, &ur, &vr, &wr);
 
+/*
   int weakul, weakvl, weakwl;
   if (pwml > 0) {
     blockPWM(weakl, (posl+5) % 6, &weakul, &weakvl, &weakwl);
@@ -258,7 +291,15 @@ void DMA1_Channel1_IRQHandler() {
   ul += weakul;
   vl += weakvl;
   wl += weakwl;
+*/
 
+  //rotemc
+  //ull = (ALPHA*ull+ul)/(ALPHA+1);
+  //vll = (ALPHA*vll+vl)/(ALPHA+1);
+  //wll = (ALPHA*wll+wl)/(ALPHA+1);
+  //rotemc
+
+/*
   int weakur, weakvr, weakwr;
   if (pwmr > 0) {
     blockPWM(weakr, (posr+5) % 6, &weakur, &weakvr, &weakwr);
@@ -268,7 +309,15 @@ void DMA1_Channel1_IRQHandler() {
   ur += weakur;
   vr += weakvr;
   wr += weakwr;
+*/
 
+  //rotemc
+  //urr = (ALPHA*urr+ur)/(ALPHA+1);
+  //vrr = (ALPHA*vrr+vr)/(ALPHA+1);
+  //wrr = (ALPHA*wrr+wr)/(ALPHA+1);
+  //rotemc
+
+  
   LEFT_TIM->LEFT_TIM_U = CLAMP(ul + pwm_res / 2, 10, pwm_res-10);
   LEFT_TIM->LEFT_TIM_V = CLAMP(vl + pwm_res / 2, 10, pwm_res-10);
   LEFT_TIM->LEFT_TIM_W = CLAMP(wl + pwm_res / 2, 10, pwm_res-10);
@@ -276,4 +325,14 @@ void DMA1_Channel1_IRQHandler() {
   RIGHT_TIM->RIGHT_TIM_U = CLAMP(ur + pwm_res / 2, 10, pwm_res-10);
   RIGHT_TIM->RIGHT_TIM_V = CLAMP(vr + pwm_res / 2, 10, pwm_res-10);
   RIGHT_TIM->RIGHT_TIM_W = CLAMP(wr + pwm_res / 2, 10, pwm_res-10);
+  
+/*
+  LEFT_TIM->LEFT_TIM_U = CLAMP(ull + pwm_res / 2, 10, pwm_res-10);
+  LEFT_TIM->LEFT_TIM_V = CLAMP(vll + pwm_res / 2, 10, pwm_res-10);
+  LEFT_TIM->LEFT_TIM_W = CLAMP(wll + pwm_res / 2, 10, pwm_res-10);
+
+  RIGHT_TIM->RIGHT_TIM_U = CLAMP(urr + pwm_res / 2, 10, pwm_res-10);
+  RIGHT_TIM->RIGHT_TIM_V = CLAMP(vrr + pwm_res / 2, 10, pwm_res-10);
+  RIGHT_TIM->RIGHT_TIM_W = CLAMP(wrr + pwm_res / 2, 10, pwm_res-10);
+  */
 }
