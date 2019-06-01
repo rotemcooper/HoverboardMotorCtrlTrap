@@ -36,6 +36,24 @@ const uint8_t hall_to_pos[8] = {
     0, //111
 };
 
+//rotemc
+// LUT ( hall_tbl[prev_state][state] ) for mapping hall sensors transitions to ticks.
+// +1 -> CW tick
+// -1 -> CCW tick
+// 00 -> no transition
+// NA -> invalid transition
+// There are ~90 ticks per revolution
+#define NA 99
+const signed char hall_tbl[6][6] = { {00, +1, 00, 00, 00, -1},
+                                     {-1, 00, +1, 00, 00, 00},
+                                     {00, -1, 00, +1, 00, 00},
+                                     {00, 00, -1, 00, +1, 00},
+                                     {00, 00, 00, -1, 00, +1},
+                                     {+1, 00, 00, 00, -1, 00} };
+
+//rotemc
+
+
 inline void blockPWM(int pwm, int pos, int *u, int *v, int *w) {
   
   //rotemc
@@ -158,11 +176,20 @@ int ull=0, vll=0, wll=0;
 int urr=0, vrr=0, wrr=0;
 
 volatile uint64_t isr_cnt=0;
-volatile uint64_t isr_cnt_posl=0;
-volatile uint64_t isr_cnt_posr=0;
+volatile uint64_t posl_isr_cnt=0;
+volatile uint64_t posr_isr_cnt=0;
 
 volatile uint posl_last=0;
 volatile uint posr_last=0;
+
+volatile uint motorl_ticks=0;
+volatile uint motorr_ticks=0;
+
+volatile uint motorl_speed=0;
+volatile uint motorr_speed=0;
+
+volatile uint motorl_res=0;
+volatile uint motorr_res=0;
 
 
 
@@ -229,10 +256,21 @@ void DMA1_Channel1_IRQHandler() {
   posr          = hall_to_pos[hallr];
   posr += 2;
   posr %= 6;
-
-  if( posr != posr_last ) {
+  
+  //rotemc
+  //------------------------------------------------------------------------------
+  
+  if( posl != posl_last ) {
+    motorl_ticks +- hall_tbl[posl_last][posl];
+    motorl_speed = isr_cnt - posl_isr_cnt;
+    motorl_res = motorl_speed/16;
+    
+    posl_isr_cnt = isr_cnt;
 
   }
+
+  //------------------------------------------------------------------------------
+  //rotemc
 
   blockPhaseCurrent(posl, adc_buffer.rl1 - offsetrl1, adc_buffer.rl2 - offsetrl2, &curl);
 
