@@ -285,6 +285,12 @@ int main(void) {
             break;
           
           case 'p':
+             HAL_UART_Transmit( &huart2, "\nN, ", 4, 200 );            
+            for( int h=0; h<96; h++ ) {
+              sprintf( output, "%d, ", h );
+              HAL_UART_Transmit( &huart2, output, strlen(output), 200);
+            }
+
             HAL_UART_Transmit( &huart2, "\nv, ", 4, 200 );            
             for( int i=0; i<96; i++ ) {
               sprintf( output, "%d, ", v_tbl[i] );
@@ -303,9 +309,9 @@ int main(void) {
               HAL_UART_Transmit( &huart2, output, strlen(output), 200);
             }
 
-            HAL_UART_Transmit( &huart2, "\nvt, ", 5, 200 );
+            HAL_UART_Transmit( &huart2, "\nut, ", 5, 200 );
             for( int l=0; l<96; l++ ) {
-              sprintf( output, "%d, ", vt_tbl[l] );
+              sprintf( output, "%d, ", ut_tbl[l] );
               HAL_UART_Transmit( &huart2, output, strlen(output), 200);
             }
             

@@ -249,13 +249,13 @@ inline void blockPWMsin(int pwm, int pos, int *u, int *v, int *w) {
 
   if( pwm >= 0 ) {
     *v= (int) ((float) pwm * sin_tbl[pos]);
-    *w= (int) ((float) pwm * sin_tbl[(pos + ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
-    *u= (int) ((float) pwm * sin_tbl[(pos + 2*ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
+    *u= (int) ((float) pwm * sin_tbl[(pos + ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
+    *w= (int) ((float) pwm * sin_tbl[(pos + 2*ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
   } else {
     pwm *= -1;
-    *u= (int) ((float) pwm * sin_tbl[pos]);
+    *w= (int) ((float) pwm * sin_tbl[pos]);
     *v= (int) ((float) pwm * sin_tbl[(pos + ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
-    *w= (int) ((float) pwm * sin_tbl[(pos + 2*ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
+    *u= (int) ((float) pwm * sin_tbl[(pos + 2*ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
   }  
 
   v_tbl[last_sin_idx] = *v;
@@ -306,8 +306,8 @@ void DMA1_Channel1_IRQHandler() {
     RIGHT_TIM->BDTR |= TIM_BDTR_MOE;
   }
 
-  int ul, vl, wl;
-  int ur, vr, wr;  
+  static int ul=0, vl=0, wl=0;
+  static int ur=0, vr=0, wr=0;  
 
   //determine next position based on hall sensors
   uint8_t hall_ul = !(LEFT_HALL_U_PORT->IDR & LEFT_HALL_U_PIN);
@@ -410,7 +410,7 @@ void DMA1_Channel1_IRQHandler() {
   }
 
   //update PWM channels based on position
-  blockPWM(pwml, posl, &ul, &vl, &wl);
+  //rotemc blockPWM(pwml, posl, &ul, &vl, &wl);
   blockPWM(pwmr, posr, &ur, &vr, &wr);
 
 /*
@@ -450,9 +450,15 @@ void DMA1_Channel1_IRQHandler() {
   //rotemc
 
   
+  LEFT_TIM->LEFT_TIM_U = CLAMP(ul, 10, pwm_res-10);
+  LEFT_TIM->LEFT_TIM_V = CLAMP(vl, 10, pwm_res-10);
+  LEFT_TIM->LEFT_TIM_W = CLAMP(wl, 10, pwm_res-10);
+/*
+  
   LEFT_TIM->LEFT_TIM_U = CLAMP(ul + pwm_res / 2, 10, pwm_res-10);
   LEFT_TIM->LEFT_TIM_V = CLAMP(vl + pwm_res / 2, 10, pwm_res-10);
   LEFT_TIM->LEFT_TIM_W = CLAMP(wl + pwm_res / 2, 10, pwm_res-10);
+*/
 
   RIGHT_TIM->RIGHT_TIM_U = CLAMP(ur + pwm_res / 2, 10, pwm_res-10);
   RIGHT_TIM->RIGHT_TIM_V = CLAMP(vr + pwm_res / 2, 10, pwm_res-10);
