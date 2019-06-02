@@ -120,8 +120,12 @@ void poweroff() {
     }
 }
 
-
-extern uint64_t isr_cnt; //rotemc
+//rotemc
+extern uint64_t isr_cnt;
+extern int v_tbl[];
+extern int w_tbl[];
+extern int u_tbl[];
+//rotemc
 
 int main(void) {
   HAL_Init();
@@ -274,6 +278,15 @@ int main(void) {
           
           case 's':
             poweroff();
+            break;
+          
+          case 'p':
+            for( int i=0; i<96; i++ ) {
+              sprintf( output, "%d, ", v_tbl[i] );
+              HAL_UART_Transmit( &huart2, output, strlen(output), 200);
+            }
+            sprintf( output, "\n" );
+            HAL_UART_Transmit( &huart2, "output", strlen(output), 200);
             break;
           
           case '\n':

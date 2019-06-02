@@ -229,10 +229,18 @@ const float sin_tbl[SIN_TBL_SIZE]= {
 	0.49609375, 0.5546875, 0.60546875, 0.656250, 0.703125, 0.750000, 0.78906250, 0.82812500
 };
 
+volatile int v_tbl[SIN_TBL_SIZE] = {0};
+volatile int w_tbl[SIN_TBL_SIZE] = {0};
+volatile int u_tbl[SIN_TBL_SIZE] = {0};
+
 inline void blockPWMsin(int pwm, int pos, int *u, int *v, int *w) {
   *v= pwm * (int) sin_tbl[pos];
   *w= pwm * (int) sin_tbl[(pos + ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE];
   *u= pwm * (int) sin_tbl[(pos + 2*ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE];
+
+  v_tbl[pos] = *v;
+  w_tbl[pos] = *w;
+  u_tbl[pos] = *u;
 }
 
 //rotemc --------------------------------------------------------
@@ -325,8 +333,7 @@ void DMA1_Channel1_IRQHandler() {
     motorl_tbl_index = (motorl_tbl_index + SIN_TBL_SIZE + motorl_dir)%SIN_TBL_SIZE;  
 
     blockPWMsin(pwml, motorl_tbl_index, &ul, &vl, &wl);
-  }
-  
+  }  
 
   //------------------------------------------------------------------------------
   //rotemc
