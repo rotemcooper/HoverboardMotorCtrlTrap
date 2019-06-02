@@ -122,7 +122,7 @@ void poweroff() {
 
 //rotemc
 extern uint64_t isr_cnt;
-extern int v_tbl[];
+extern volatile int v_tbl[];
 extern int w_tbl[];
 extern int u_tbl[];
 //rotemc
@@ -298,12 +298,13 @@ int main(void) {
       }
       
       timeout = 0;
-      HAL_GetTick();
+      /*
       if( HAL_GetTick() >= counter + 1000 ) {
         counter = HAL_GetTick();
         sprintf( output, "isr counter=%d\n", isr_cnt );
         HAL_UART_Transmit( &huart2, output, strlen(output), 200);
       }
+      */
     #endif
 
 

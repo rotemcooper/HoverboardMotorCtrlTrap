@@ -234,9 +234,9 @@ volatile int w_tbl[SIN_TBL_SIZE] = {0};
 volatile int u_tbl[SIN_TBL_SIZE] = {0};
 
 inline void blockPWMsin(int pwm, int pos, int *u, int *v, int *w) {
-  *v= pwm * (int) sin_tbl[pos];
-  *w= pwm * (int) sin_tbl[(pos + ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE];
-  *u= pwm * (int) sin_tbl[(pos + 2*ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE];
+  *v= (int) ((float) pwm * sin_tbl[pos]);
+  *w= (int) ((float) pwm * sin_tbl[(pos + ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
+  *u= (int) ((float) pwm * sin_tbl[(pos + 2*ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
 
   v_tbl[pos] = *v;
   w_tbl[pos] = *w;
