@@ -285,13 +285,27 @@ int main(void) {
             break;
           
           case 'p':
-            HAL_UART_Transmit( &huart2, " ", 1, 200 );
+            HAL_UART_Transmit( &huart2, "\nv ", 3, 200 );            
             for( int i=0; i<96; i++ ) {
               sprintf( output, "%d, ", v_tbl[i] );
               HAL_UART_Transmit( &huart2, output, strlen(output), 200);
             }
-            sprintf( output, "\n" );
-            HAL_UART_Transmit( &huart2, "output", strlen(output), 200);
+
+            HAL_UART_Transmit( &huart2, "\nw ", 3, 200 );            
+            for( int i=0; i<96; i++ ) {
+              sprintf( output, "%d, ", w_tbl[i] );
+              HAL_UART_Transmit( &huart2, output, strlen(output), 200);
+            }
+
+            HAL_UART_Transmit( &huart2, "\nu ", 3, 200 );            
+            for( int i=0; i<96; i++ ) {
+              sprintf( output, "%d, ", u_tbl[i] );
+              HAL_UART_Transmit( &huart2, output, strlen(output), 200);
+            }
+
+            /*
+            sprintf( output, "\nt " );
+            HAL_UART_Transmit( &huart2, output, strlen(output), 200);
             //break;
           
             //HAL_UART_Transmit( &huart2, " ", 1, 200 );
@@ -299,8 +313,8 @@ int main(void) {
               sprintf( output, "%d, ", vt_tbl[i] );
               HAL_UART_Transmit( &huart2, output, strlen(output), 200);
             }
-            sprintf( output, "\n" );
-            HAL_UART_Transmit( &huart2, "output", strlen(output), 200);
+            */
+            HAL_UART_Transmit( &huart2, "\n", 1, 200);
             break;
           
           case '\n':
