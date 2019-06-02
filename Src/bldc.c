@@ -234,10 +234,27 @@ volatile int w_tbl[SIN_TBL_SIZE] = {0};
 volatile int u_tbl[SIN_TBL_SIZE] = {0};
 volatile int last_sin_idx=0;
 
+volatile int vt_tbl[SIN_TBL_SIZE] = {0};
+volatile int wt_tbl[SIN_TBL_SIZE] = {0};
+volatile int ut_tbl[SIN_TBL_SIZE] = {0};
+
 inline void blockPWMsin(int pwm, int pos, int *u, int *v, int *w) {
-  *v= (int) ((float) pwm * sin_tbl[pos]);
-  *w= (int) ((float) pwm * sin_tbl[(pos + ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
-  *u= (int) ((float) pwm * sin_tbl[(pos + 2*ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
+  
+  blockPWM( pwm, pos/COMM_PER_HALL_TICK, u, v, w);
+  vt_tbl[last_sin_idx] = *v;
+  wt_tbl[last_sin_idx] = *w;
+  ut_tbl[last_sin_idx] = *u;
+
+  if( pwm >= 0 ) {
+    *v= (int) ((float) pwm * sin_tbl[pos]);
+    *w= (int) ((float) pwm * sin_tbl[(pos + ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
+    *u= (int) ((float) pwm * sin_tbl[(pos + 2*ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
+  } else {
+    pwm *= -1;
+    *u= (int) ((float) pwm * sin_tbl[pos]);
+    *v= (int) ((float) pwm * sin_tbl[(pos + ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
+    *w= (int) ((float) pwm * sin_tbl[(pos + 2*ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
+  }  
 
   v_tbl[last_sin_idx] = *v;
   w_tbl[last_sin_idx] = *w;
@@ -329,7 +346,7 @@ void DMA1_Channel1_IRQHandler() {
 
     motorl_speed = isr_cnt - posl_isr_cnt;
     posl_isr_cnt = isr_cnt;
-        
+
     motorl_comm_res = motorl_speed/COMM_PER_HALL_TICK;
     motorl_comm_isr_cnt = isr_cnt + motorl_comm_res;
 
