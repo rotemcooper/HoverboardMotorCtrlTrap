@@ -179,6 +179,9 @@ volatile uint64_t isr_cnt=0;
 volatile uint64_t posl_isr_cnt=0;
 volatile uint64_t posr_isr_cnt=0;
 
+volatile uint64_t motorl_comm_isr_cnt=0;
+volatile uint64_t posr_isr_cnt_comm=0;
+
 volatile uint posl_last=0;
 volatile uint posr_last=0;
 
@@ -194,13 +197,19 @@ volatile int motorr_dir=1;
 volatile uint motorl_speed=0;
 volatile uint motorr_speed=0;
 
-volatile uint motorl_res=0;
+volatile uint motorl_comm_res=0;
 volatile uint motorr_res=0;
 
-volatile uint motorl_tbl_index=0;
-volatile uint motorr_tbl_index=0;
+volatile int motorl_tbl_index=0;
+volatile int motorr_tbl_index=0;
 
-static const float sin_tbl[96]= {
+volatile uint motorl_tbl_index_next=0;
+volatile uint motorr_tbl_index_next=0;
+
+#define SIN_TBL_SIZE 96
+#define ONE_3RD_SIN_TBL_SIZE (SIN_TBL_SIZE/3)
+#define COMM_PER_HALL_TICK (SIN_TBL_SIZE/6)
+const float sin_tbl[SIN_TBL_SIZE]= {
 	0.86328125, 0.89453125, 0.92187500, 0.94531250, 0.96484375, 0.9765625, 0.98828125, 0.99609375,
 	0.99609375, 0.99609375, 0.98828125, 0.98046875, 0.96484375, 0.9453125, 0.92578125, 0.89843750,
 
@@ -219,6 +228,12 @@ static const float sin_tbl[96]= {
 	0.0078125, 0.07421875, 0.13671875, 0.203125, 0.265625, 0.328125, 0.38671875, 0.44921875,
 	0.49609375, 0.5546875, 0.60546875, 0.656250, 0.703125, 0.750000, 0.78906250, 0.82812500
 };
+
+inline void blockPWMsin(int pwm, int pos, int *u, int *v, int *w) {
+  *v= pwm * (int) sin_tbl[pos];
+  *w= pwm * (int) sin_tbl[(pos + ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE];
+  *u= pwm * (int) sin_tbl[(pos + 2*ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE];
+}
 
 //rotemc --------------------------------------------------------
 
@@ -289,7 +304,8 @@ void DMA1_Channel1_IRQHandler() {
   
   if( posl != posl_last ) {
     posl_last = posl;
-    motorl_tbl_index = posl*16;  
+    motorl_tbl_index = posl*COMM_PER_HALL_TICK;
+    blockPWMsin(pwml, motorl_tbl_index, &ul, &vl, &wl);
 
     motorl_ticks += hall_tbl[posl_last][posl];
     motorl_dir = (motorl_ticks > motorl_ticks_last) ? 1 : -1;
@@ -297,8 +313,20 @@ void DMA1_Channel1_IRQHandler() {
 
     motorl_speed = isr_cnt - posl_isr_cnt;
     posl_isr_cnt = isr_cnt;
-    motorl_res = motorl_speed/16;      
+    motorl_comm_res = motorl_speed/COMM_PER_HALL_TICK;
+    motorl_comm_isr_cnt = isr_cnt + motorl_comm_res;
+
+    motorl_tbl_index_next = (motorl_tbl_index + SIN_TBL_SIZE + COMM_PER_HALL_TICK*motorl_dir)%SIN_TBL_SIZE;  
   }
+  else if ( isr_cnt == motorl_comm_isr_cnt &&
+            motorl_tbl_index != motorl_tbl_index_next)
+  {
+    motorl_comm_isr_cnt = isr_cnt + motorl_comm_res;
+    motorl_tbl_index = (motorl_tbl_index + SIN_TBL_SIZE + motorl_dir)%SIN_TBL_SIZE;  
+
+    blockPWMsin(pwml, motorl_tbl_index, &ul, &vl, &wl);
+  }
+  
 
   //------------------------------------------------------------------------------
   //rotemc
