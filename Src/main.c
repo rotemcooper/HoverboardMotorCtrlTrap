@@ -292,28 +292,23 @@ int main(void) {
             }
 
             HAL_UART_Transmit( &huart2, "\nw ", 3, 200 );            
-            for( int i=0; i<96; i++ ) {
-              sprintf( output, "%d, ", w_tbl[i] );
+            for( int j=0; j<96; j++ ) {
+              sprintf( output, "%d, ", w_tbl[j] );
               HAL_UART_Transmit( &huart2, output, strlen(output), 200);
             }
 
             HAL_UART_Transmit( &huart2, "\nu ", 3, 200 );            
-            for( int i=0; i<96; i++ ) {
-              sprintf( output, "%d, ", u_tbl[i] );
+            for( int k=0; k<96; k++ ) {
+              sprintf( output, "%d, ", u_tbl[k] );
               HAL_UART_Transmit( &huart2, output, strlen(output), 200);
             }
 
-            /*
-            sprintf( output, "\nt " );
-            HAL_UART_Transmit( &huart2, output, strlen(output), 200);
-            //break;
-          
-            //HAL_UART_Transmit( &huart2, " ", 1, 200 );
-            for( int i=0; i<96; i++ ) {
-              sprintf( output, "%d, ", vt_tbl[i] );
+            HAL_UART_Transmit( &huart2, "\nvt ", 4, 200 );
+            for( int l=0; l<96; l++ ) {
+              sprintf( output, "%d, ", vt_tbl[l] );
               HAL_UART_Transmit( &huart2, output, strlen(output), 200);
             }
-            */
+            
             HAL_UART_Transmit( &huart2, "\n", 1, 200);
             break;
           
