@@ -285,25 +285,25 @@ int main(void) {
             break;
           
           case 'p':
-            HAL_UART_Transmit( &huart2, "\nv ", 3, 200 );            
+            HAL_UART_Transmit( &huart2, "\nv, ", 4, 200 );            
             for( int i=0; i<96; i++ ) {
               sprintf( output, "%d, ", v_tbl[i] );
               HAL_UART_Transmit( &huart2, output, strlen(output), 200);
             }
 
-            HAL_UART_Transmit( &huart2, "\nw ", 3, 200 );            
+            HAL_UART_Transmit( &huart2, "\nw, ", 4, 200 );            
             for( int j=0; j<96; j++ ) {
               sprintf( output, "%d, ", w_tbl[j] );
               HAL_UART_Transmit( &huart2, output, strlen(output), 200);
             }
 
-            HAL_UART_Transmit( &huart2, "\nu ", 3, 200 );            
+            HAL_UART_Transmit( &huart2, "\nu, ", 4, 200 );            
             for( int k=0; k<96; k++ ) {
               sprintf( output, "%d, ", u_tbl[k] );
               HAL_UART_Transmit( &huart2, output, strlen(output), 200);
             }
 
-            HAL_UART_Transmit( &huart2, "\nvt ", 4, 200 );
+            HAL_UART_Transmit( &huart2, "\nvt, ", 5, 200 );
             for( int l=0; l<96; l++ ) {
               sprintf( output, "%d, ", vt_tbl[l] );
               HAL_UART_Transmit( &huart2, output, strlen(output), 200);
