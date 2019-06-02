@@ -122,6 +122,7 @@ void poweroff() {
 
 //rotemc
 extern uint64_t isr_cnt;
+extern int motorl_dir;
 extern int v_tbl[];
 extern int w_tbl[];
 extern int u_tbl[];
@@ -129,6 +130,7 @@ extern int u_tbl[];
 extern int vt_tbl[];
 extern int wt_tbl[];
 extern int ut_tbl[];
+extern int offset_rel;
 //rotemc
 
 int main(void) {
@@ -282,6 +284,19 @@ int main(void) {
           
           case 's':
             poweroff();
+            break;
+          
+          case 'a':
+            offset_rel++;
+            break;
+          
+          case 'z':
+            offset_rel--;
+            break;
+          
+          case 'd':
+            sprintf( output, " Direction = %d\n, ", motorl_dir );
+            HAL_UART_Transmit( &huart2, output, strlen(output), 200);
             break;
           
           case 'p':

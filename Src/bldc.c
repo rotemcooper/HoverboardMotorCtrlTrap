@@ -171,6 +171,7 @@ const int max_time = PWM_FREQ / 10;
 volatile int vel = 0;
 
 //rotemc --------------------------------------------------------
+
 #define ALPHA 0
 int ull=0, vll=0, wll=0;
 int urr=0, vrr=0, wrr=0;
@@ -181,6 +182,9 @@ volatile uint64_t posr_isr_cnt=0;
 
 volatile uint64_t motorl_comm_isr_cnt=0;
 volatile uint64_t posr_isr_cnt_comm=0;
+
+volatile uint64_t posl_no_change_cntr=0;
+volatile uint64_t posr_no_change_cntr=0;
 
 volatile uint posl_last=0;
 volatile uint posr_last=0;
@@ -239,12 +243,18 @@ volatile int vt_tbl[SIN_TBL_SIZE] = {0};
 volatile int wt_tbl[SIN_TBL_SIZE] = {0};
 volatile int ut_tbl[SIN_TBL_SIZE] = {0};
 
-inline void blockPWMsin(int pwm, int pos, int *u, int *v, int *w) {
+volatile int offset_rel=0;
+
+inline void blockPWMsin(int dir, int pwm, int pos, int *u, int *v, int *w) {
   
   blockPWM( pwm, pos/COMM_PER_HALL_TICK, u, v, w);
   vt_tbl[last_sin_idx] = *v;
   wt_tbl[last_sin_idx] = *w;
   ut_tbl[last_sin_idx] = *u;
+
+  if( dir < 0 ) {
+    pos = (pos + SIN_TBL_SIZE + offset_rel)%SIN_TBL_SIZE;
+  }
   
 
   if( pwm >= 0 ) {
@@ -331,9 +341,21 @@ void DMA1_Channel1_IRQHandler() {
   //rotemc
   //------------------------------------------------------------------------------
   
+  
+  if( posl == posl_last ) {
+    posl_no_change_cntr++;
+    if( posl_no_change_cntr == 16000 ) {      
+      posl_last = (posl + 5)%6;
+      //motorl_ticks_last--;
+    }
+  }
+  
+  
   if( posl != posl_last ) {
+    posl_no_change_cntr = 0;
+
     motorl_tbl_index = posl*COMM_PER_HALL_TICK;
-    blockPWMsin(pwml, motorl_tbl_index, &ul, &vl, &wl);
+    
 
     motorl_ticks += hall_tbl[posl_last][posl];
     posl_last = posl;
@@ -344,6 +366,9 @@ void DMA1_Channel1_IRQHandler() {
     else if (motorl_ticks < motorl_ticks_last) {
       motorl_dir = -1;
     }
+    blockPWMsin(motorl_dir, pwml, motorl_tbl_index, &ul, &vl, &wl);
+
+
     motorl_ticks_last = motorl_ticks;      
 
     motorl_speed = isr_cnt - posl_isr_cnt;
@@ -360,7 +385,7 @@ void DMA1_Channel1_IRQHandler() {
     motorl_comm_isr_cnt = isr_cnt + motorl_comm_res;
     motorl_tbl_index = (motorl_tbl_index + SIN_TBL_SIZE + motorl_dir)%SIN_TBL_SIZE;  
 
-    blockPWMsin(pwml, motorl_tbl_index, &ul, &vl, &wl);
+    blockPWMsin(motorl_dir, pwml, motorl_tbl_index, &ul, &vl, &wl);
   }  
 
   //------------------------------------------------------------------------------
