@@ -185,11 +185,11 @@ volatile uint64_t posr_isr_cnt_comm=0;
 volatile uint posl_last=0;
 volatile uint posr_last=0;
 
-volatile uint motorl_ticks=0;
-volatile uint motorr_ticks=0;
+volatile int motorl_ticks=0;
+volatile int motorr_ticks=0;
 
-volatile uint motorl_ticks_last=0;
-volatile uint motorr_ticks_last=0;
+volatile int motorl_ticks_last=0;
+volatile int motorr_ticks_last=0;
 
 volatile int motorl_dir=1;
 volatile int motorr_dir=1;
@@ -232,15 +232,17 @@ const float sin_tbl[SIN_TBL_SIZE]= {
 volatile int v_tbl[SIN_TBL_SIZE] = {0};
 volatile int w_tbl[SIN_TBL_SIZE] = {0};
 volatile int u_tbl[SIN_TBL_SIZE] = {0};
+volatile int last_sin_idx=0;
 
 inline void blockPWMsin(int pwm, int pos, int *u, int *v, int *w) {
   *v= (int) ((float) pwm * sin_tbl[pos]);
   *w= (int) ((float) pwm * sin_tbl[(pos + ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
   *u= (int) ((float) pwm * sin_tbl[(pos + 2*ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
 
-  v_tbl[pos] = *v;
-  w_tbl[pos] = *w;
-  u_tbl[pos] = *u;
+  v_tbl[last_sin_idx] = *v;
+  w_tbl[last_sin_idx] = *w;
+  u_tbl[last_sin_idx] = *u;
+  last_sin_idx = (last_sin_idx+1)%SIN_TBL_SIZE;
 }
 
 //rotemc --------------------------------------------------------
@@ -311,16 +313,23 @@ void DMA1_Channel1_IRQHandler() {
   //------------------------------------------------------------------------------
   
   if( posl != posl_last ) {
-    posl_last = posl;
     motorl_tbl_index = posl*COMM_PER_HALL_TICK;
     blockPWMsin(pwml, motorl_tbl_index, &ul, &vl, &wl);
 
     motorl_ticks += hall_tbl[posl_last][posl];
-    motorl_dir = (motorl_ticks > motorl_ticks_last) ? 1 : -1;
-    motorl_ticks_last = motorl_ticks;
+    posl_last = posl;
+
+    if (motorl_ticks > motorl_ticks_last) {
+      motorl_dir = 1;
+    }
+    else if (motorl_ticks < motorl_ticks_last) {
+      motorl_dir = -1;
+    }
+    motorl_ticks_last = motorl_ticks;      
 
     motorl_speed = isr_cnt - posl_isr_cnt;
     posl_isr_cnt = isr_cnt;
+        
     motorl_comm_res = motorl_speed/COMM_PER_HALL_TICK;
     motorl_comm_isr_cnt = isr_cnt + motorl_comm_res;
 

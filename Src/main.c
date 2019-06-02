@@ -281,6 +281,7 @@ int main(void) {
             break;
           
           case 'p':
+            HAL_UART_Transmit( &huart2, " ", 1, 200 );
             for( int i=0; i<96; i++ ) {
               sprintf( output, "%d, ", v_tbl[i] );
               HAL_UART_Transmit( &huart2, output, strlen(output), 200);
