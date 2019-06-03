@@ -213,7 +213,7 @@ volatile uint motorr_tbl_index_next=0;
 #define SIN_TBL_SIZE 96
 #define ONE_3RD_SIN_TBL_SIZE (SIN_TBL_SIZE/3)
 #define COMM_PER_HALL_TICK (SIN_TBL_SIZE/6)
-const int32_t sin_tbl[SIN_TBL_SIZE]= {	
+const uint32_t sin_tbl[SIN_TBL_SIZE]= {	
 
   86718750, 89062500, 91796875, 94140625, 96093750, 97656250, 98828125, 99609375,
 	99609375, 99609375, 99218750, 98046875, 96484375, 94921875, 92578125, 89843750,
@@ -235,8 +235,8 @@ const int32_t sin_tbl[SIN_TBL_SIZE]= {
 
 };
 
-/*
-const float sin_tbl[SIN_TBL_SIZE]= {	
+
+const float sin_tbl_flt[SIN_TBL_SIZE]= {	
 
 	0.86718750, 0.89062500, 0.91796875, 0.94140625, 0.96093750, 0.97656250, 0.98828125, 0.99609375,
 	0.99609375, 0.99609375, 0.99218750, 0.98046875, 0.96484375, 0.94921875, 0.92578125, 0.89843750,
@@ -256,7 +256,7 @@ const float sin_tbl[SIN_TBL_SIZE]= {
   0.86328125, 0.89453125, 0.92187500, 0.94531250, 0.96484375, 0.97656250, 0.98828125, 0.99609375,
 	0.99609375, 0.99609375, 0.98828125, 0.98046875, 0.96484375, 0.94531250, 0.92578125, 0.89843750
 };
-*/
+
 
 volatile int v_tbl[SIN_TBL_SIZE] = {0};
 volatile int w_tbl[SIN_TBL_SIZE] = {0};
@@ -281,20 +281,35 @@ inline void blockPWMsin(int dir, int pwm, int pos, int *u, int *v, int *w) {
   }  
 
   if( pwm >= 0 ) {
-    *v= (int) ((float) pwm * sin_tbl[pos]);
-    *u= (int) ((float) pwm * sin_tbl[(pos + ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
-    *w= (int) ((float) pwm * sin_tbl[(pos + 2*ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
+    *v= (int) (((uint64_t) pwm * (uint64_t) sin_tbl[pos])/100000000);
+    *u= (int) (((uint64_t) pwm * (uint64_t) sin_tbl[(pos +   ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE])/100000000);
+    *w= (int) (((uint64_t) pwm * (uint64_t) sin_tbl[(pos + 2*ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE])/100000000);                        
   } else {
     pwm *= -1;
-    *w= (int) ((float) pwm * sin_tbl[pos]);
-    *v= (int) ((float) pwm * sin_tbl[(pos + ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
-    *u= (int) ((float) pwm * sin_tbl[(pos + 2*ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
+    *w= (int) (((uint64_t) pwm * (uint64_t) sin_tbl[pos])/100000000);
+    *v= (int) (((uint64_t) pwm * (uint64_t) sin_tbl[(pos +   ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE])/100000000);
+    *u= (int) (((uint64_t) pwm * (uint64_t) sin_tbl[(pos + 2*ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE])/100000000);                        
   }  
 
   v_tbl[last_sin_idx] = *v;
   w_tbl[last_sin_idx] = *w;
   u_tbl[last_sin_idx] = *u;
   last_sin_idx = (last_sin_idx+1)%SIN_TBL_SIZE;
+
+  
+  
+  if( pwm >= 0 ) {
+    *v= (int) ((float) pwm * sin_tbl_flt[pos]);
+    *u= (int) ((float) pwm * sin_tbl_flt[(pos + ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
+    *w= (int) ((float) pwm * sin_tbl_flt[(pos + 2*ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
+  } else {
+    pwm *= -1;
+    *w= (int) ((float) pwm * sin_tbl_flt[pos]);
+    *v= (int) ((float) pwm * sin_tbl_flt[(pos + ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
+    *u= (int) ((float) pwm * sin_tbl_flt[(pos + 2*ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
+  }  
+
+  
 }
 
 //rotemc --------------------------------------------------------
