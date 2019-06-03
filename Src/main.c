@@ -130,7 +130,7 @@ extern int u_tbl[];
 extern int vt_tbl[];
 extern int wt_tbl[];
 extern int ut_tbl[];
-extern int offset_rel;
+extern int offset_pull;
 //rotemc
 
 int main(void) {
@@ -287,11 +287,15 @@ int main(void) {
             break;
           
           case 'a':
-            offset_rel++;
+            offset_pull++;
+            sprintf( output, " offset_pull = %d\n, ", offset_pull );
+            HAL_UART_Transmit( &huart2, output, strlen(output), 200);
             break;
           
           case 'z':
-            offset_rel--;
+            offset_pull--;
+            sprintf( output, " offset_pull = %d\n, ", offset_pull );
+            HAL_UART_Transmit( &huart2, output, strlen(output), 200);
             break;
           
           case 'd':
