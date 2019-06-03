@@ -235,7 +235,7 @@ const uint32_t sin_tbl[SIN_TBL_SIZE]= {
 
 };
 
-
+/*
 const float sin_tbl_flt[SIN_TBL_SIZE]= {	
 
 	0.86718750, 0.89062500, 0.91796875, 0.94140625, 0.96093750, 0.97656250, 0.98828125, 0.99609375,
@@ -256,7 +256,7 @@ const float sin_tbl_flt[SIN_TBL_SIZE]= {
   0.86328125, 0.89453125, 0.92187500, 0.94531250, 0.96484375, 0.97656250, 0.98828125, 0.99609375,
 	0.99609375, 0.99609375, 0.98828125, 0.98046875, 0.96484375, 0.94531250, 0.92578125, 0.89843750
 };
-
+*/
 
 volatile int v_tbl[SIN_TBL_SIZE] = {0};
 volatile int w_tbl[SIN_TBL_SIZE] = {0};
@@ -383,7 +383,7 @@ void DMA1_Channel1_IRQHandler() {
   
   if( posl == posl_last ) {
     posl_no_change_cntr++;
-    if( posl_no_change_cntr == 16000 ) {      
+    if( posl_no_change_cntr == 16000 && motorl_dir < 0 ) {      
       posl_last = (posl + 5)%6;
       //motorl_ticks_last--;
     }
