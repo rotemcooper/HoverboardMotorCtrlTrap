@@ -289,6 +289,7 @@ inline void blockPWMsin(int dir, int pwm, int pos, int *u, int *v, int *w) {
     *w= (int) (((uint64_t) pwm * (uint64_t) sin_tbl[pos])/100000000);
     *v= (int) (((uint64_t) pwm * (uint64_t) sin_tbl[(pos +   ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE])/100000000);
     *u= (int) (((uint64_t) pwm * (uint64_t) sin_tbl[(pos + 2*ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE])/100000000);                        
+    pwm *= -1;
   }  
 
   v_tbl[last_sin_idx] = *v;
@@ -296,7 +297,7 @@ inline void blockPWMsin(int dir, int pwm, int pos, int *u, int *v, int *w) {
   u_tbl[last_sin_idx] = *u;
   last_sin_idx = (last_sin_idx+1)%SIN_TBL_SIZE;
 
-  
+/*
   
   if( pwm >= 0 ) {
     *v= (int) ((float) pwm * sin_tbl_flt[pos]);
@@ -308,7 +309,7 @@ inline void blockPWMsin(int dir, int pwm, int pos, int *u, int *v, int *w) {
     *v= (int) ((float) pwm * sin_tbl_flt[(pos + ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
     *u= (int) ((float) pwm * sin_tbl_flt[(pos + 2*ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
   }  
-
+*/
   
 }
 
