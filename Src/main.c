@@ -285,13 +285,18 @@ int main(void) {
           case 'm':
             {
               char motor;
-              int8_t LSBspeed;
-              int8_t MSBspeed;
+              uint8_t LSBspeed;
+              uint8_t MSBspeed;
+              int16_t speed;
               Uart_get_char( &motor );
               Uart_get_char( &LSBspeed );
-              Uart_get_char( &MSBspeed );            
-              sprintf( output, " received m%c %d, %d\n, ", motor, LSBspeed, MSBspeed);
+              Uart_get_char( &MSBspeed );
+              speed = (int16_t) ((((uint16_t) MSBspeed) << 8) | (uint16_t) LSBspeed);            
+              sprintf( output, " received m%c %o, %o, %d\n, ", motor, LSBspeed, MSBspeed, speed);
               HAL_UART_Transmit( &huart2, output, strlen(output), 200);
+              if( motor == 'l' && speed > -800 && speed < 800 ) {
+                pwml = speed;
+              }
             }
             break;
 
