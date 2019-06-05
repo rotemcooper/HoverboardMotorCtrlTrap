@@ -282,7 +282,21 @@ int main(void) {
             pwml = 0;
 		       	break;
           
+          case 'm':
+            {
+              char motor;
+              int8_t LSBspeed;
+              int8_t MSBspeed;
+              Uart_get_char( &motor );
+              Uart_get_char( &LSBspeed );
+              Uart_get_char( &MSBspeed );            
+              sprintf( output, " received m%c %d, %d\n, ", motor, LSBspeed, MSBspeed);
+              HAL_UART_Transmit( &huart2, output, strlen(output), 200);
+            }
+            break;
+
           case 's':
+          case 'q':
             poweroff();
             break;
           
