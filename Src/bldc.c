@@ -271,18 +271,22 @@ volatile int offset_pull=12;
 
 inline void blockPWMsin(int dir, int pwm, int pos, int *u, int *v, int *w) {
   
+  #if 0
   blockPWM( pwm, pos/COMM_PER_HALL_TICK, u, v, w);
   vt_tbl[last_sin_idx] = *v;
   wt_tbl[last_sin_idx] = *w;
   ut_tbl[last_sin_idx] = *u;
+  #endif
 
   if( dir < 0 ) {
     pos = (pos + SIN_TBL_SIZE + offset_pull)%SIN_TBL_SIZE;
   }
+  #if 0
   else {
-    if( pwm > 0 ) pwm += 140;
-    else if (pwm < 0 ) pwm -= 140;
-  }  
+    /*if( pwm > 0 ) pwm += 140;
+    else if (pwm < 0 )*/ pwm -= 200;
+  }
+  #endif  
 
   if( pwm >= 0 ) {
     *v= (int) (((uint64_t) pwm * (uint64_t) sin_tbl[pos])/100000000);
@@ -296,10 +300,12 @@ inline void blockPWMsin(int dir, int pwm, int pos, int *u, int *v, int *w) {
     pwm *= -1;
   }  
 
+  #if 0
   v_tbl[last_sin_idx] = *v;
   w_tbl[last_sin_idx] = *w;
   u_tbl[last_sin_idx] = *u;
   last_sin_idx = (last_sin_idx+1)%SIN_TBL_SIZE;
+  #endif
 
 /*
   
@@ -387,7 +393,7 @@ void DMA1_Channel1_IRQHandler() {
   
   if( posl == posl_last ) {
     posl_no_change_cntr++;
-    if( posl_no_change_cntr == 16000 && motorl_dir < 0 ) {      
+    if( posl_no_change_cntr == 2000 && motorl_dir < 0 ) {      
       posl_last = (posl + 5)%6;
       //motorl_ticks_last--;
     }

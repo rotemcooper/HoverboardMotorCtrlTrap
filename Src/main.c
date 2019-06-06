@@ -230,7 +230,7 @@ int main(void) {
   
   
   while(1) {
-    HAL_Delay(DELAY_IN_MAIN_LOOP); //delay in ms
+    HAL_Delay( DELAY_IN_MAIN_LOOP ); //delay in ms
 
     #ifdef CONTROL_NUNCHUCK
       Nunchuck_Read();
@@ -445,11 +445,11 @@ int main(void) {
       buzzerFreq = 4;
       buzzerPattern = 1;
     } else if (batteryVoltage < ((float)BAT_LOW_LVL1 * (float)BAT_NUMBER_OF_CELLS) && batteryVoltage > ((float)BAT_LOW_LVL2 * (float)BAT_NUMBER_OF_CELLS) && BAT_LOW_LVL1_ENABLE) {  // low bat 1: slow beep
-      buzzerFreq = 5;
-      buzzerPattern = 42;
+      //rotemc buzzerFreq = 5;
+      //rotemc buzzerPattern = 42;
     } else if (batteryVoltage < ((float)BAT_LOW_LVL2 * (float)BAT_NUMBER_OF_CELLS) && batteryVoltage > ((float)BAT_LOW_DEAD * (float)BAT_NUMBER_OF_CELLS) && BAT_LOW_LVL2_ENABLE) {  // low bat 2: fast beep
-      buzzerFreq = 5;
-      buzzerPattern = 6;
+      //buzzerFreq = 5;
+      //buzzerPattern = 6;
     } else if (BEEPS_BACKWARD && speed < -50) {  // backward beep
       buzzerFreq = 5;
       buzzerPattern = 1;
