@@ -292,8 +292,8 @@ int main(void) {
               Uart_get_char( &LSBspeed );
               Uart_get_char( &MSBspeed );
               speed = (int16_t) ((((uint16_t) MSBspeed) << 8) | (uint16_t) LSBspeed);            
-              sprintf( output, " received m%c %o, %o, %d\n, ", motor, LSBspeed, MSBspeed, speed);
-              HAL_UART_Transmit( &huart2, output, strlen(output), 200);
+              //sprintf( output, " received m%c %o, %o, %d\n, ", motor, LSBspeed, MSBspeed, speed);
+              //HAL_UART_Transmit( &huart2, output, strlen(output), 200);
               if( motor == 'l' && speed > -800 && speed < 800 ) {
                 pwml = speed;
               }
