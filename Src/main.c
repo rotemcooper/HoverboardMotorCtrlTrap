@@ -228,10 +228,31 @@ int main(void) {
   enable = 1;  // enable motors
   uint32_t counter = HAL_GetTick(); //rotemc
   
+  int self_test = 0;
   
   while(1) {
     HAL_Delay( DELAY_IN_MAIN_LOOP ); //delay in ms
 
+    if( self_test > 0 ) {
+      self_test--;
+      if( self_test == 0 ) {
+        pwml = 0;
+      }
+      else if( self_test%10 == 0 ) {
+        if( self_test > 9000 ) {
+          pwml = CLAMP( pwml-10, -350, 0);
+        }
+        else if( self_test > 8000 ) {
+          pwml = CLAMP( pwml+10, -350, 0);
+        }
+        else if( self_test > 7000 ) {
+          pwml = CLAMP( pwml-10, -350, 0);
+        }
+        else if( self_test > 6000 ) {
+          pwml = CLAMP( pwml+10, -350, 0);
+        }
+      }
+    }
     #ifdef CONTROL_NUNCHUCK
       Nunchuck_Read();
       cmd1 = CLAMP((nunchuck_data[0] - 127) * 8, -1000, 1000); // x - axis. Nunchuck joystick readings range 30 - 230
@@ -281,6 +302,15 @@ int main(void) {
 		      case '0':
             pwml = 0;
 		       	break;
+          
+          case 't':
+            self_test = 10000;            
+            break;
+          
+          case 'x':
+            self_test = 0;
+            pwml=0;            
+            break;
           
           case 'm':
             {

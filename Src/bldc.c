@@ -281,10 +281,9 @@ inline void blockPWMsin(int dir, int pwm, int pos, int *u, int *v, int *w) {
   if( dir < 0 ) {
     pos = (pos + SIN_TBL_SIZE + offset_pull)%SIN_TBL_SIZE;
   }
-  #if 0
+  #if 1
   else {
-    /*if( pwm > 0 ) pwm += 140;
-    else if (pwm < 0 )*/ pwm -= 200;
+    pwm -= 200;
   }
   #endif  
 
@@ -415,8 +414,7 @@ void DMA1_Channel1_IRQHandler() {
     else if (motorl_ticks < motorl_ticks_last) {
       motorl_dir = -1;
     }
-    blockPWMsin(motorl_dir, pwml, motorl_tbl_index, &ul, &vl, &wl);
-
+    //blockPWMsin(motorl_dir, pwml, motorl_tbl_index, &ul, &vl, &wl);
 
     motorl_ticks_last = motorl_ticks;      
 
@@ -434,8 +432,9 @@ void DMA1_Channel1_IRQHandler() {
     motorl_comm_isr_cnt = isr_cnt + motorl_comm_res;
     motorl_tbl_index = (motorl_tbl_index + SIN_TBL_SIZE + motorl_dir)%SIN_TBL_SIZE;  
 
-    blockPWMsin(motorl_dir, pwml, motorl_tbl_index, &ul, &vl, &wl);
+    //blockPWMsin(motorl_dir, pwml, motorl_tbl_index, &ul, &vl, &wl);
   }  
+  blockPWMsin(motorl_dir, pwml, motorl_tbl_index, &ul, &vl, &wl);
 
   //------------------------------------------------------------------------------
   //rotemc
