@@ -288,9 +288,10 @@ int main(void) {
       char output[32];
       char c;
       if( Uart_get_char(&c) > 0 ) {
-        HAL_UART_Transmit( &huart2, (uint8_t*)&c, sizeof(c), 200 );
+        //rotemc HAL_UART_Transmit( &huart2, (uint8_t*)&c, sizeof(c), 200 );
         switch( c )
         {
+          /*
           case '+':
             pwml += 10;
 			      break;
@@ -311,20 +312,22 @@ int main(void) {
             self_test = 0;
             pwml=0;            
             break;
-          
+          */
           case 'm':
             {
               char motor;
+              char terminator;
               uint8_t LSBspeed;
               uint8_t MSBspeed;
               int16_t speed;
               Uart_get_char( &motor );
               Uart_get_char( &LSBspeed );
               Uart_get_char( &MSBspeed );
+              Uart_get_char( &terminator );
               speed = (int16_t) ((((uint16_t) MSBspeed) << 8) | (uint16_t) LSBspeed);            
               //sprintf( output, " received m%c %o, %o, %d\n, ", motor, LSBspeed, MSBspeed, speed);
               //HAL_UART_Transmit( &huart2, output, strlen(output), 200);
-              if( motor == 'l' && speed > -800 && speed < 800 ) {
+              if( terminator == 'e' && motor == 'l' && speed > -800 && speed < 800 ) {
                 pwml = speed;
               }
             }
@@ -334,7 +337,7 @@ int main(void) {
           case 'q':
             poweroff();
             break;
-          
+          /*
           case 'a':
             offset_pull++;
             sprintf( output, " offset_pull = %d\n, ", offset_pull );
@@ -390,6 +393,7 @@ int main(void) {
             sprintf( output, "\npwml=%d\n", pwml );
             HAL_UART_Transmit( &huart2, output, strlen(output), 200);
             break;
+            */
         }
         
       }
