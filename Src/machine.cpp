@@ -3,19 +3,13 @@
 
 extern "C" {
 
-// ---------------------------------------------------------------------------------
-// Configurations
-// ---------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
+// --------------------------------------- Externs ---------------------------------------
+// ---------------------------------------------------------------------------------------
 
-// Only one fo these to be defined
-// Relay Haverboard Serial1 UART communication viae Serial/USB
-//#define UART_PASSTHROUGH
+extern int motorl_ticks;
+extern int motorr_ticks;
 
-// New FW in Hoverboard (as opposed to original FW)
-#define NEW_FW
-
-// Act as Serial1<->USB adapter
-//#define UART_ADAPTER
 
 // ---------------------------------------------------------------------------------
 // Wiring
@@ -44,7 +38,7 @@ typedef enum {
 
 // ---------------------------------------------------------------------------------------
 // ----------------------------------- Need to implement these ---------------------------
-// --------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
 #define constrain CLAMP
 #define max MAX
 #define byte char
@@ -146,48 +140,7 @@ void workout_pref_init( WorkoutPrf *prf ) {
 }
 */
 
-// ---------------------------------------------------------------------------------
-// ---------------------------- Serial Communication -------------------------------
-// ---------------------------------------------------------------------------------
 
-#ifdef NEW_FW
-void serialWriteFrame( HardwareSerial* serial, int16_t value )
-{
-  char motor = 'r';
-  if( serial == &Serial1 ) {
-    motor = 'l';
-  }
-
-  Serial1.write( 'm' );
-  Serial1.write( motor );
-  Serial1.write( (uint8_t)(value & 0xff) );
-  Serial1.write( (uint8_t)((value >> 8) & 0xff) );
-  Serial1.write( 'e' );
-}
-
-#else
-
-const uint8_t    SERIAL_FRAME_LENGTH = 6;
-const uint16_t   SERIAL_FRAME_START = 256;
-const uint8_t    SERIAL_CONTACT_CLOSED_BYTE = 85;
-
-void serialWriteFrame( HardwareSerial* serial, int16_t value )
-{
-  // Set up a frame
-  uint16_t uartFrame[ SERIAL_FRAME_LENGTH ] = {
-    SERIAL_FRAME_START, 
-    (uint8_t)(value & 0xff), 
-    (uint8_t)(value >> 8 & 0xff), 
-    (uint8_t)(value & 0xff), 
-    (uint8_t)(value >> 8 & 0xff), 
-    SERIAL_CONTACT_CLOSED_BYTE };
-
-  // Send the frame over the UART
-  for( uint8_t i=0; i<6; i++ ) {
-    serial->write9bit( uartFrame[i] ); 
-  } 
-}
-#endif
 
 // ---------------------------------------------------------------------------------
 // -------------------------------- Hall Sensors -----------------------------------
@@ -242,12 +195,13 @@ enum {
 
 class Hall {
   private:
-  int h1Pin;
-  int h2Pin;
-  int h3Pin;
-  uint state;
-  uint statePrev;
-  uint badStateCntr;
+  //int h1Pin;
+  //int h2Pin;
+  //int h3Pin;
+  int* motor_ticks;
+  //uint state;
+  //uint statePrev;
+  //uint badStateCntr;
   int ticksCntr;
   int speedCntr;
   int accelCntr;
@@ -258,13 +212,11 @@ class Hall {
   } prev;  
       
   public:
-  Hall( int h1PinPrm, int h2PinPrm, int h3PinPrm ) :
-    h1Pin( h1PinPrm ),
-    h2Pin( h2PinPrm ),
-    h3Pin( h3PinPrm ) {
+  Hall( int* motor_ticks_prm ) :
+    motor_ticks( motor_ticks_prm ) {
       reset();
-      state = 0;
-      statePrev = 0;
+      //state = 0;
+      //statePrev = 0;
       prev.time = millis();
       prev.ticks = 0;
       prev.speed = 0;
@@ -273,7 +225,7 @@ class Hall {
   //--------------------------------------------------------------------------------
   
   void reset() {
-    badStateCntr = 0;
+    //rotemc complete badStateCntr = 0;
     ticksCntr = 0;
     speedCntr = 0;
     accelCntr = 0;  
@@ -288,6 +240,7 @@ class Hall {
   // Yellow wire -> h3Pin
   //
   int ticks() {
+    /*
     int h1 = digitalRead( h1Pin );
     int h2 = digitalRead( h2Pin );
     int h3 = digitalRead( h3Pin );
@@ -301,7 +254,9 @@ class Hall {
       badStateCntr++;
       tick = 0;
     }
-    ticksCntr += tick;
+    
+    ticksCntr += tick; */
+    ticksCntr = *motor_ticks;
 
     //--------------------------------------------------------------------------------
 
@@ -319,7 +274,8 @@ class Hall {
   }
   
   inline uint badState() {
-    return badStateCntr;
+    //return badStateCntr;
+    return 0;
   }
   
   inline int speed() {
@@ -330,11 +286,13 @@ class Hall {
     return accelCntr;
   }
 
-  void print() {  
+  void print() {
+      /* 
     int h1 = digitalRead(h1Pin);
     int h2 = digitalRead(h2Pin);
     int h3 = digitalRead(h3Pin);
     Serial.printf("Hall values: %d, %d, %d\n", h1, h2, h3);
+    */
   }
 };
 
@@ -342,8 +300,8 @@ class Hall {
 
 void hallSensorsTest()
 {
-  Hall rightHall( 14, 15, 16 );
-  Hall leftHall( 18, 19, 20 );
+  Hall rightHall( &motorr_ticks );
+  Hall leftHall( &motorl_ticks );
   while( 1 ) {
     Serial.printf( "right ticks/bad_ctr=%d/%d, left ticks/bad_ctr=%d/%d\n",\
                     rightHall.ticks(), rightHall.badState(),\
@@ -364,19 +322,17 @@ class Motor {
   public:
   Hall hall;
   Motor( HardwareSerial* serialPrm,
-         int hallH1Pin,
-         int hallH2Pin,
-         int hallH3Pin ) :
+         int* motor_ticks_prm ) :
     serial( serialPrm ),
     valueLast( 0 ),
     valueSent( 0 ),
-    hall( hallH1Pin, hallH2Pin, hallH3Pin ) {
+    hall( motor_ticks_prm ) {
     }
 
   // ---------------------------------------------------------------------------------
   
   inline void torque( int16_t value ) {
-    serialWriteFrame( serial, -value );
+    //rotemc complete
   }
 
   // ---------------------------------------------------------------------------------
@@ -414,8 +370,8 @@ class Motors {
   Motor right;
   Motor left;
   Motors() :
-    right( &Serial3, 14, 15, 16 ), // Serial and Hall sensors pins for right motor
-    left( &Serial1, 18, 19, 20 ) { // Serial and Hall sensors pins for left motor
+    right( &Serial3, &motorr_ticks ), // Serial and Hall sensors pins for right motor
+    left( &Serial1, &motorl_ticks ) { // Serial and Hall sensors pins for left motor
   }
 
   // ---------------------------------------------------------------------------------
@@ -1163,117 +1119,12 @@ class Machine {
 // --------------------------------- Main Loop -------------------------------------
 // ---------------------------------------------------------------------------------
 
-void setup() {
-  // Initialize serial/USB communication
-  Serial.begin(9600);
-  
-  // Initialize the UART1 and UART3
-  #if defined(NEW_FW)
-    //Serial1.begin ( 9600 );
-    Serial1.begin ( 57600 );
-  #else
-    // 9 bits mode to be used with original hoverboard FW
-    Serial1.begin (26300, SERIAL_9N1);
-    Serial3.begin (26300, SERIAL_9N1);
-  #endif  
 
-  // Initialize hall sensors
-  //pinMode(14, INPUT_PULLUP);
-  //pinMode(15, INPUT_PULLUP);
-  //pinMode(16, INPUT_PULLUP);
-
-  //pinMode(18, INPUT_PULLUP);
-  //pinMode(19, INPUT_PULLUP);
-  //pinMode(20, INPUT_PULLUP);
-
-  // Hall sensor test pins
-  //pinMode(21, INPUT_PULLUP);
-  //pinMode(22, INPUT_PULLUP);
-  //pinMode(23, INPUT_PULLUP);
-
-  // Turn on LED. Pin 13 has an LED connected on most Arduino boards.
-  //int led = 13;
-  //pinMode(led, OUTPUT);
-  //digitalWrite(led, HIGH);  
-}
-
-//---------------------------------------------------------------------------
-
-
-//right( &Serial3, 14, 15, 16 ), // Serial and Hall sensors pins for right motor
-//left( &Serial1, 18, 19, 20 ) { // Serial and Hall sensors pins for left motor
-/*
-void uartPassthrough() {
-  
-  Hall rightHall( 14, 15, 16  );
-  Hall leftHall( 18, 19, 20 );
-  int cnt= 0;
-  int printCnt = 0;
-  int speed=0;
-    
-  while( 1 ) {
-    
-    // If anything comes in Serial1, read it and write it to USB
-    while (Serial1.available()) {      
-      Serial.write(Serial1.read());
-    }
-
-    // If anything comes in USB, read it and write it to Serial1
-    while (Serial.available()) {    
-      Serial1.write(Serial.read());
-    }
-
-    if( ++printCnt > 12 ) //12
-    {
-      printCnt=0;
-      cnt++;
-      Serial.printf( "cnt=%d, ticks=%d/%d, bad=%d/%d\n", cnt, rightHall.ticks(), leftHall.ticks(), rightHall.badState(), leftHall.badState() );
-    }
-
-  //  serialWriteFrame( &Serial1, -300 ); 
-    //delay( 5 );
-    
-    cnt++;
-    if( cnt%10 == 0 && cnt < 3000 ) {
-      if( cnt < 400 ) {
-        speed -= 10;        
-      }
-      else if( cnt < 800 ) {
-        speed += 10;
-      }
-      else if( cnt < 1200 ) {
-        speed -= 10;        
-      }
-      else if( cnt < 1600 ) {
-        speed += 10;
-      }
-      else if( cnt < 2000 ) {
-        speed -= 10;        
-      }
-      else if( cnt < 2400 ) {
-        speed += 10;
-      }
-      speed = max( -400, speed );
-      speed = min( 0, speed );
-      serialWriteFrame( &Serial1, speed );             
-    }
-  }
-}
-*/
 Machine machine;
 
 void loop()
 {
-  #ifdef UART_ADAPTER
-    uartPassthrough();
-  #else
-    machine.main();
-  #endif
-  
-  //motor_up_down_test( 200 );
-  //hallSensorsTest();
-    
-  Serial.println( "----------------------------" );
+  machine.main();
 }
 
 }
