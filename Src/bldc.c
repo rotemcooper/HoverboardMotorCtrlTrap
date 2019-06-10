@@ -283,7 +283,7 @@ inline void blockPWMsin(int dir, int pwm, int pos, int *u, int *v, int *w) {
   }
   #if 1
   else {
-    pwm -= 200;
+    pwm -= 100;//rotemc 200;
   }
   #endif  
 

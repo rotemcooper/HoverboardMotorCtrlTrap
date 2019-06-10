@@ -287,6 +287,7 @@ int main(void) {
       
       char output[32];
       char c;
+      loop();
       if( Uart_get_char(&c) > 0 ) {
         //rotemc HAL_UART_Transmit( &huart2, (uint8_t*)&c, sizeof(c), 200 );
         switch( c )
@@ -547,3 +548,5 @@ void SystemClock_Config(void) {
   /* SysTick_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
+
+
