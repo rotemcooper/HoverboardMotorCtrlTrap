@@ -1,15 +1,18 @@
 //#include "config.h"
 #include "defines.h"
+//#include "stm32f1xx_hal.h"
 
-extern "C" {
+
+//extern "C" uint32_t millis(void);
+
 
 // ---------------------------------------------------------------------------------------
 // --------------------------------------- Externs ---------------------------------------
 // ---------------------------------------------------------------------------------------
 
-extern int motorl_ticks;
-extern int motorr_ticks;
-
+extern "C" int motorl_ticks;
+extern "C" int motorr_ticks;
+extern "C" uint32_t _millis;
 
 // ---------------------------------------------------------------------------------
 // Wiring
@@ -75,9 +78,11 @@ class HardwareSerial {
 void delay( int ms ) {
 }
 
-int millis() {
-    return 0;
-}
+//extern "C" uint32_t HAL_GetTick(void);
+uint32_t millis() {
+    //return _millis;
+    return HAL_GetTick();
+} 
 
 int digitalRead( int pin ) {
     return 0;
@@ -146,62 +151,12 @@ void workout_pref_init( WorkoutPrf *prf ) {
 // -------------------------------- Hall Sensors -----------------------------------
 // ---------------------------------------------------------------------------------
 
-// Right motor hall wires to Teensy 3.2 pins
-// Blue wire -> pin14
-// Green wire -> pin15
-// Yellow wire -> pin16
-//
-// Left motor hall wires to Teensy 3.2 pins
-// Blue wire -> pin18
-// Green wire -> pin19
-// Yellow wire -> pin20//
-
-// LUT ( hall_tbl[prev_state][state] ) for mapping hall sensors transitions to ticks.
-// +1 -> CW tick
-// -1 -> CCW tick
-// 00 -> no transition
-// NA -> invalid transition
-// There are 88-90 ticks per revolution
-#define NA 99
-const signed char hall_tbl[8][8] = { NA, NA, NA, NA, NA, NA, NA, NA,
-                                     NA, 00, NA, -1, NA, +1, NA, NA,
-                                     NA, NA, 00, +1, NA, NA, -1, NA,
-                                     NA, +1, -1, 00, NA, NA, NA, NA,
-                                     NA, NA, NA, NA, 00, -1, +1, NA,
-                                     NA, -1, NA, NA, +1, 00, NA, NA,
-                                     NA, NA, +1, NA, -1, NA, 00, NA,
-                                     NA, NA, NA, NA, NA, NA, NA, NA };
-
-// Enum representing hall sensors states
-// MSB   = hall sensor 1
-// Midel = hall sensor 2
-// LSB   = hall sensor 3
-// At any given time one or two (out of the three) sensors can have a value of 1.
-// The three hall sensor wires should be connected such that the state tansirions
-// match the enum order (from HALL_100 down to HALL101) when the wheel is turning CW.
-enum {
-  HALL_100 = 0b100,
-  HALL_110 = 0b110,
-  HALL_010 = 0b010,
-  HALL_011 = 0b011,
-  HALL_001 = 0b001,
-  HALL_101 = 0b101
-};                                    
-
-// ---------------------------------------------------------------------------------
-
 // Interval (in millisec) to compute speed and acceleration
 #define HALL_INTERVAL 50
 
 class Hall {
   private:
-  //int h1Pin;
-  //int h2Pin;
-  //int h3Pin;
   int* motor_ticks;
-  //uint state;
-  //uint statePrev;
-  //uint badStateCntr;
   int ticksCntr;
   int speedCntr;
   int accelCntr;
@@ -215,8 +170,6 @@ class Hall {
   Hall( int* motor_ticks_prm ) :
     motor_ticks( motor_ticks_prm ) {
       reset();
-      //state = 0;
-      //statePrev = 0;
       prev.time = millis();
       prev.ticks = 0;
       prev.speed = 0;
@@ -1122,9 +1075,14 @@ class Machine {
 
 Machine machine;
 
-void loop()
+extern "C" void loop()
 {
   machine.main();
 }
 
+/*
+extern "C" int main1(void);
+int main(void) {
+  main1();
 }
+*/

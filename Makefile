@@ -56,6 +56,7 @@ startup_stm32f103xe.s
 #######################################
 PREFIX = arm-none-eabi-
 CC = $(PREFIX)gcc
+CXX = $(PREFIX)g++
 AS = $(PREFIX)gcc -x assembler-with-cpp
 CP = $(PREFIX)objcopy
 AR = $(PREFIX)ar
@@ -123,7 +124,7 @@ LDSCRIPT = STM32F103RCTx_FLASH.ld
 # libraries
 LIBS = -lc -lm -lnosys
 LIBDIR =
-LDFLAGS = $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
+LDFLAGS = $(MCU) -specs=nano.specs -specs=nosys.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
 
 # default action: build all
 all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin

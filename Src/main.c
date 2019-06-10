@@ -84,6 +84,11 @@ int milli_vel_error_sum = 0;
 //rotemc
 extern DMA_HandleTypeDef hdma_usart2_rx;
 
+uint32_t _millis;
+//uint32_t millis(void) {
+//    return _millis;
+//}
+
 int Uart_get_char( char* c ) 
 {
 	unsigned int dma_count;
@@ -226,7 +231,7 @@ int main(void) {
   float board_temp_deg_c;
 
   enable = 1;  // enable motors
-  uint32_t counter = HAL_GetTick(); //rotemc
+  _millis = HAL_GetTick(); //rotemc
   
   int self_test = 0;
   
@@ -400,13 +405,7 @@ int main(void) {
       }
       
       timeout = 0;
-      /*
-      if( HAL_GetTick() >= counter + 1000 ) {
-        counter = HAL_GetTick();
-        sprintf( output, "isr counter=%d\n", isr_cnt );
-        HAL_UART_Transmit( &huart2, output, strlen(output), 200);
-      }
-      */
+      
     #endif
 
 
