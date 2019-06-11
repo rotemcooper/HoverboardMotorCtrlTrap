@@ -1,5 +1,8 @@
 #include "config.h"
 #include "defines.h"
+//#include <string.h>
+#include <stdio.h>
+#include <stdarg.h>
 //#include "stm32f1xx_hal.h"
 
 
@@ -13,6 +16,7 @@
 extern "C" int motorl_ticks;
 extern "C" int motorr_ticks;
 extern "C" void main_health_check(void);
+extern "C" void poweroff(void);
 //extern "C" uint32_t _millis;
 
 // ---------------------------------------------------------------------------------
@@ -47,8 +51,12 @@ typedef enum {
 #define max MAX
 #define byte char
 #define PI 3.14159265359
+extern UART_HandleTypeDef huart2;
 
 class HardwareSerial {
+  private:
+  char buffer[256];
+
   public:
   void begin( int rate ) {
   }
@@ -68,8 +76,14 @@ class HardwareSerial {
       return 0;
   }
 
+  
   int printf( const char *format, ...) {
-      return 0;
+    va_list args;
+    va_start (args, format);
+    int len = vsprintf (buffer,format, args);
+    HAL_UART_Transmit( &huart2, (uint8_t*) buffer, len, 200);
+    va_end (args);
+    return 0;
   }
 
   void println( const char *str ) {
@@ -92,9 +106,6 @@ int digitalRead( int pin ) {
 // ----------------------------------------------------------------------------------------
 
 HardwareSerial Serial;
-HardwareSerial Serial1;
-HardwareSerial Serial3;
-
 
 class WorkoutPrf {
   private:
@@ -321,8 +332,8 @@ class Motors {
   Motor right;
   Motor left;
   Motors() :
-    right( &motorr_ticks ), // Serial and Hall sensors pins for right motor
-    left( &motorl_ticks ) { // Serial and Hall sensors pins for left motor
+    right( &motorr_ticks ), 
+    left( &motorl_ticks ) {
   }
 
   // ---------------------------------------------------------------------------------
@@ -1055,11 +1066,7 @@ class Machine {
           break;
 
         case 'q':
-          Serial1.write( 'q' );
-          delay( 200 );
-          Serial1.write( 'q' );
-          delay( 200 );
-          Serial1.write( 'q' );
+          poweroff();
           break;       
         
         default:

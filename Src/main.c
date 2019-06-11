@@ -113,7 +113,7 @@ int Uart_get_char( char* c )
 
 //rotemc
 
-void poweroff() {
+void poweroff(void) {
     if (abs(speed) < 20) {
         buzzerPattern = 0;
         enable = 0;
@@ -240,7 +240,7 @@ int main(void) {
   
   machine_main();
   return 0;
-  
+
   //-----------------------------------------------------------------------
   
 
