@@ -1,4 +1,4 @@
-//#include "config.h"
+#include "config.h"
 #include "defines.h"
 //#include "stm32f1xx_hal.h"
 
@@ -12,7 +12,8 @@
 
 extern "C" int motorl_ticks;
 extern "C" int motorr_ticks;
-extern "C" uint32_t _millis;
+extern "C" void main_health_check(void);
+//extern "C" uint32_t _millis;
 
 // ---------------------------------------------------------------------------------
 // Wiring
@@ -370,6 +371,8 @@ class Motors {
         right.hall.ticks();
         left.hall.ticks();
       }
+      main_health_check(); //rotemc
+      HAL_Delay( DELAY_IN_MAIN_LOOP ); //rotemc - add continue
     } while( rightTicks > right.hall.ticks() ||
              leftTicks > left.hall.ticks() );
     torque( 0 );
@@ -920,7 +923,9 @@ class Machine {
 
   bool continueWorkout()
   {
-        
+    main_health_check(); //rotemc
+    HAL_Delay( DELAY_IN_MAIN_LOOP ); //rotemc
+    
     if( !Serial.available() ) {
       return true;
     }
@@ -985,7 +990,7 @@ class Machine {
       while( !Serial.available() ) {
         motors.windBack( 150 );
         motors.reset();
-        workout( prf );
+        workout( prf );        
       }
       
       int input = Serial.read();
@@ -1075,7 +1080,7 @@ class Machine {
 
 Machine machine;
 
-extern "C" void loop()
+extern "C" void machine_main()
 {
   machine.main();
 }

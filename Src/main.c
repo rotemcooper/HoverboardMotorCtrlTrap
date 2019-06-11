@@ -84,7 +84,7 @@ int milli_vel_error_sum = 0;
 //rotemc
 extern DMA_HandleTypeDef hdma_usart2_rx;
 
-uint32_t _millis;
+//uint32_t _millis;
 //uint32_t millis(void) {
 //    return _millis;
 //}
@@ -136,7 +136,10 @@ extern int vt_tbl[];
 extern int wt_tbl[];
 extern int ut_tbl[];
 extern int offset_pull;
+
 //rotemc
+float board_temp_adc_filtered;
+float board_temp_deg_c;
 
 int main(void) {
   HAL_Init();
@@ -227,17 +230,21 @@ int main(void) {
     LCD_WriteString(&lcd, "Initializing...");
   #endif
 
-  float board_temp_adc_filtered = (float)adc_buffer.temp;
-  float board_temp_deg_c;
+  //rotemc
+  board_temp_adc_filtered = (float)adc_buffer.temp;
+  //float board_temp_deg_c;
 
   enable = 1;  // enable motors
-  _millis = HAL_GetTick(); //rotemc
+  //_millis = HAL_GetTick(); //rotemc
   
-  int self_test = 0;
+  machine_main();
   
+
+  //int self_test = 0;
   while(1) {
     HAL_Delay( DELAY_IN_MAIN_LOOP ); //delay in ms
 
+    /*
     if( self_test > 0 ) {
       self_test--;
       if( self_test == 0 ) {
@@ -258,6 +265,9 @@ int main(void) {
         }
       }
     }
+    */
+
+/*
     #ifdef CONTROL_NUNCHUCK
       Nunchuck_Read();
       cmd1 = CLAMP((nunchuck_data[0] - 127) * 8, -1000, 1000); // x - axis. Nunchuck joystick readings range 30 - 230
@@ -289,10 +299,10 @@ int main(void) {
     #ifdef CONTROL_SERIAL_USART2
       cmd1 = CLAMP((int16_t)command.steer, -1000, 1000);
       cmd2 = CLAMP((int16_t)command.speed, -1000, 1000);
-      
+     */
+
       char output[32];
-      char c;
-      loop();
+      char c;      
       if( Uart_get_char(&c) > 0 ) {
         //rotemc HAL_UART_Transmit( &huart2, (uint8_t*)&c, sizeof(c), 200 );
         switch( c )
@@ -406,9 +416,9 @@ int main(void) {
       
       timeout = 0;
       
-    #endif
+    //#endif
 
-
+/*
     // ####### LOW-PASS FILTER #######
     steer = steer * (1.0 - FILTER) + cmd1 * FILTER;
     speed = speed * (1.0 - FILTER) + cmd2 * FILTER;
@@ -422,6 +432,8 @@ int main(void) {
     #ifdef ADDITIONAL_CODE
       ADDITIONAL_CODE;
     #endif
+    */
+
 //rotemc
 /* 
     // ####### SET OUTPUTS #######
@@ -439,11 +451,11 @@ int main(void) {
     }
 */
    //rotemc
-
+/*
     lastSpeedL = speedL;
     lastSpeedR = speedR;
-
-
+*/
+/*
     if (inactivity_timeout_counter % 25 == 0) {
       // ####### CALC BOARD TEMPERATURE #######
       board_temp_adc_filtered = board_temp_adc_filtered * 0.99 + (float)adc_buffer.temp * 0.01;
@@ -462,7 +474,7 @@ int main(void) {
       setScopeChannel(7, (int)board_temp_deg_c);  // 8: for verifying board temperature calibration
       consoleScope();
     }
-
+*/
 
     // ####### POWEROFF BY POWER-BUTTON #######
     if (HAL_GPIO_ReadPin(BUTTON_PORT, BUTTON_PIN) && weakr == 0 && weakl == 0) {
@@ -470,7 +482,6 @@ int main(void) {
       while (HAL_GPIO_ReadPin(BUTTON_PORT, BUTTON_PIN)) {}
       poweroff();
     }
-
 
     // ####### BEEP AND EMERGENCY POWEROFF #######
     if ((TEMP_POWEROFF_ENABLE && board_temp_deg_c >= TEMP_POWEROFF && abs(speed) < 20) || (batteryVoltage < ((float)BAT_LOW_DEAD * (float)BAT_NUMBER_OF_CELLS) && abs(speed) < 20)) {  // poweroff before mainboard burns OR low bat 3
@@ -492,7 +503,7 @@ int main(void) {
       buzzerPattern = 0;
     }
 
-
+/*
     // ####### INACTIVITY TIMEOUT #######
     if (abs(speedL) > 50 || abs(speedR) > 50) {
       inactivity_timeout_counter = 0;
@@ -502,7 +513,43 @@ int main(void) {
     if (inactivity_timeout_counter > (INACTIVITY_TIMEOUT * 60 * 1000) / (DELAY_IN_MAIN_LOOP + 1)) {  // rest of main loop needs maybe 1ms
       poweroff();
     }
+    */
   }
+}
+
+/** Check system health (temp, battery, etc.) and power off if needed.
+*/
+void main_health_check(void) {
+  // ####### POWEROFF BY POWER-BUTTON #######
+  if (HAL_GPIO_ReadPin(BUTTON_PORT, BUTTON_PIN) && weakr == 0 && weakl == 0) {
+    enable = 0;
+    while (HAL_GPIO_ReadPin(BUTTON_PORT, BUTTON_PIN)) {}
+    poweroff();   
+  }
+
+  // ####### CALC BOARD TEMPERATURE #######
+  board_temp_adc_filtered = board_temp_adc_filtered * 0.99 + (float)adc_buffer.temp * 0.01;
+  board_temp_deg_c = ((float)TEMP_CAL_HIGH_DEG_C - (float)TEMP_CAL_LOW_DEG_C) / ((float)TEMP_CAL_HIGH_ADC - (float)TEMP_CAL_LOW_ADC) * (board_temp_adc_filtered - (float)TEMP_CAL_LOW_ADC) + (float)TEMP_CAL_LOW_DEG_C;
+      
+  // ####### BEEP AND EMERGENCY POWEROFF #######  
+  if ((TEMP_POWEROFF_ENABLE && board_temp_deg_c >= TEMP_POWEROFF && abs(speed) < 20) || (batteryVoltage < ((float)BAT_LOW_DEAD * (float)BAT_NUMBER_OF_CELLS) && abs(speed) < 20)) {  // poweroff before mainboard burns OR low bat 3
+    poweroff();
+  } else if (TEMP_WARNING_ENABLE && board_temp_deg_c >= TEMP_WARNING) {  // beep if mainboard gets hot
+    buzzerFreq = 4;
+    buzzerPattern = 1;
+  } else if (batteryVoltage < ((float)BAT_LOW_LVL1 * (float)BAT_NUMBER_OF_CELLS) && batteryVoltage > ((float)BAT_LOW_LVL2 * (float)BAT_NUMBER_OF_CELLS) && BAT_LOW_LVL1_ENABLE) {  // low bat 1: slow beep
+    //rotemc buzzerFreq = 5;
+    //rotemc buzzerPattern = 42;
+  } else if (batteryVoltage < ((float)BAT_LOW_LVL2 * (float)BAT_NUMBER_OF_CELLS) && batteryVoltage > ((float)BAT_LOW_DEAD * (float)BAT_NUMBER_OF_CELLS) && BAT_LOW_LVL2_ENABLE) {  // low bat 2: fast beep
+    //rotemc buzzerFreq = 5;
+    //rotemc buzzerPattern = 6;
+  } else if (BEEPS_BACKWARD && speed < -50) {  // backward beep
+    buzzerFreq = 5;
+    buzzerPattern = 1;
+  } else {  // do not beep
+    buzzerFreq = 0;
+    buzzerPattern = 0;
+  }    
 }
 
 /** System Clock Configuration
