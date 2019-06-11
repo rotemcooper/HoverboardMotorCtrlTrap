@@ -83,6 +83,7 @@ int milli_vel_error_sum = 0;
 
 //rotemc
 extern DMA_HandleTypeDef hdma_usart2_rx;
+extern void machine_main(void);
 
 //uint32_t _millis;
 //uint32_t millis(void) {
@@ -186,9 +187,9 @@ int main(void) {
 
   HAL_GPIO_WritePin(LED_PORT, LED_PIN, 1);
 
-  int lastSpeedL = 0, lastSpeedR = 0;
-  int speedL = 0, speedR = 0;
-  float direction = 1;
+  //int lastSpeedL = 0, lastSpeedR = 0;
+  //int speedL = 0, speedR = 0;
+  //float direction = 1;
 
   #ifdef CONTROL_PPM
     PPM_Init();
@@ -238,6 +239,9 @@ int main(void) {
   //_millis = HAL_GetTick(); //rotemc
   
   machine_main();
+  return 0;
+  
+  //-----------------------------------------------------------------------
   
 
   //int self_test = 0;
@@ -337,8 +341,8 @@ int main(void) {
               uint8_t MSBspeed;
               int16_t speed;
               Uart_get_char( &motor );
-              Uart_get_char( &LSBspeed );
-              Uart_get_char( &MSBspeed );
+              Uart_get_char( (char*) &LSBspeed );
+              Uart_get_char( (char*) &MSBspeed );
               Uart_get_char( &terminator );
               speed = (int16_t) ((((uint16_t) MSBspeed) << 8) | (uint16_t) LSBspeed);            
               //sprintf( output, " received m%c %o, %o, %d\n, ", motor, LSBspeed, MSBspeed, speed);
@@ -520,6 +524,9 @@ int main(void) {
 /** Check system health (temp, battery, etc.) and power off if needed.
 */
 void main_health_check(void) {
+  
+  timeout = 0;
+  
   // ####### POWEROFF BY POWER-BUTTON #######
   if (HAL_GPIO_ReadPin(BUTTON_PORT, BUTTON_PIN) && weakr == 0 && weakl == 0) {
     enable = 0;

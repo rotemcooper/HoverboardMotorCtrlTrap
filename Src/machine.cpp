@@ -269,15 +269,12 @@ void hallSensorsTest()
 
 class Motor {
   private:
-  HardwareSerial* serial;
   int16_t valueLast;
   int16_t valueSent;
 
   public:
   Hall hall;
-  Motor( HardwareSerial* serialPrm,
-         int* motor_ticks_prm ) :
-    serial( serialPrm ),
+  Motor( int* motor_ticks_prm ) :
     valueLast( 0 ),
     valueSent( 0 ),
     hall( motor_ticks_prm ) {
@@ -324,8 +321,8 @@ class Motors {
   Motor right;
   Motor left;
   Motors() :
-    right( &Serial3, &motorr_ticks ), // Serial and Hall sensors pins for right motor
-    left( &Serial1, &motorl_ticks ) { // Serial and Hall sensors pins for left motor
+    right( &motorr_ticks ), // Serial and Hall sensors pins for right motor
+    left( &motorl_ticks ) { // Serial and Hall sensors pins for left motor
   }
 
   // ---------------------------------------------------------------------------------
@@ -1080,7 +1077,7 @@ class Machine {
 
 Machine machine;
 
-extern "C" void machine_main()
+extern "C" void machine_main(void)
 {
   machine.main();
 }
