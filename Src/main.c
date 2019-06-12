@@ -99,7 +99,7 @@ int uart_get_char( char* c ) {
 	unsigned int dma_count;
 	unsigned int rx_index = uart_rx_index;	
 
-	// If no data received, return.
+	// If no data received, return 0.
 	dma_count =  UART_RX_BUFF_SIZE - __HAL_DMA_GET_COUNTER(&hdma_usart2_rx);
 	if( dma_count == rx_index ) {
 		return 0;
@@ -117,7 +117,7 @@ int uart_peek( char* c ) {
 	unsigned int dma_count;
 	unsigned int rx_index = uart_rx_index;	
 
-	// If no data received, return.
+	// If no data received, return 0.
 	dma_count =  UART_RX_BUFF_SIZE - __HAL_DMA_GET_COUNTER(&hdma_usart2_rx);
 	if( dma_count == rx_index ) {
 		return 0;

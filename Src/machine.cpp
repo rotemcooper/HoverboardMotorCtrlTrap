@@ -60,17 +60,10 @@ class HardwareSerial {
   char buffer[256];
 
   public:
-  void begin( int rate ) {
-  }
-  
   bool available() {
-      return false;
-  }
-
-  void write( char c ) {
-    char str[] = { c, 0 };
-    printf( str );
-  }
+    char c = 0;
+    return uart_peek( &c );
+  }  
 
   char read() {
     char c = 0;
@@ -83,7 +76,6 @@ class HardwareSerial {
     uart_peek( &c );
     return c;    
   }
-
   
   int printf( const char *format, ...) {
     va_list args;
@@ -92,11 +84,16 @@ class HardwareSerial {
     HAL_UART_Transmit( &huart2, (uint8_t*) buffer, len, 200);
     va_end (args);
     return len;
-  }
+  }  
 
   void println( const char *str ) {
     printf( str );
     printf( "\n" );
+  }
+
+  void write( char c ) {
+    char str[] = { c, 0 };
+    printf( str );
   }
 };
 
@@ -1097,6 +1094,15 @@ Machine machine;
 
 extern "C" void machine_main(void)
 {
+  while( 1 ) {
+    main_health_check(); //rotemc
+    HAL_Delay( DELAY_IN_MAIN_LOOP ); //rotemc
+    
+    if( Serial.available() ) {
+      Serial.write( Serial.read() );
+    }
+  }
+  
   machine.main();
 }
 
