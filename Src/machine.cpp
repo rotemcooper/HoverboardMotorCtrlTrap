@@ -311,6 +311,9 @@ class Motor {
   
   inline void torque( int16_t value ) {
     //rotemc complete
+    //if( value >= -400 && value <= 600 ) {
+      *pwm = -value;
+    //}
   }
 
   // ---------------------------------------------------------------------------------
@@ -1012,7 +1015,7 @@ class Machine {
     while(1)
     {
       while( !Serial.available() ) {
-        motors.windBack( 100 /*150*/ ); //rotemc fix
+        motors.windBack( 150 );
         motors.reset();
         workout( prf );        
       }
