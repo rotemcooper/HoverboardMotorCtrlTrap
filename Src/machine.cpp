@@ -235,7 +235,7 @@ class Hall {
     }
     
     ticksCntr += tick; */
-    ticksCntr = *motor_ticks;
+    ticksCntr = -(*motor_ticks);
 
     //--------------------------------------------------------------------------------
 
@@ -951,7 +951,7 @@ class Machine {
   bool continueWorkout()
   {
     main_health_check(); //rotemc
-    HAL_Delay( DELAY_IN_MAIN_LOOP ); //rotemc
+    HAL_Delay( 1/* DELAY_IN_MAIN_LOOP*/ ); //rotemc
     
     if( !Serial.available() ) {
       return true;

@@ -389,7 +389,7 @@ void DMA1_Channel1_IRQHandler() {
   //rotemc
   //------------------------------------------------------------------------------
   
-  
+  /*
   if( posl == posl_last ) {
     posl_no_change_cntr++;
     if( posl_no_change_cntr == 2000 && motorl_dir < 0 ) {      
@@ -397,7 +397,7 @@ void DMA1_Channel1_IRQHandler() {
       //motorl_ticks_last--;
     }
   }
-  
+  */
   
   if( posl != posl_last ) {
     posl_no_change_cntr = 0;
