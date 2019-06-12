@@ -17,7 +17,8 @@ extern "C" int motorl_ticks;
 extern "C" int motorr_ticks;
 extern "C" void main_health_check(void);
 extern "C" void poweroff(void);
-extern "C" int Uart_get_char( char* c );
+extern "C" int uart_get_char( char* c );
+extern "C" int uart_peek( char* c );
 //extern "C" uint32_t _millis;
 
 // ---------------------------------------------------------------------------------
@@ -67,16 +68,20 @@ class HardwareSerial {
   }
 
   void write( char c ) {
+    char str[] = { c, 0 };
+    printf( str );
   }
 
   char read() {
     char c = 0;
-    Uart_get_char( &c );
+    uart_get_char( &c );
     return c;
   }
 
   char peek() {
-      return 0;
+    char c = 0;
+    uart_peek( &c );
+    return c;    
   }
 
   

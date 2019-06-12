@@ -90,15 +90,15 @@ extern void machine_main(void);
 //    return _millis;
 //}
 
-int Uart_get_char( char* c ) 
-{
+//-------------------------------------------------------------------------------------------
+
+/* Read a a character fromUART/Serialcommand.
+** Optimize to use uart_peek
+*/
+int uart_get_char( char* c ) {
 	unsigned int dma_count;
 	unsigned int rx_index = uart_rx_index;	
 
-	//if (!uart.RX_available) {
-	//	return 0;
-	//}
-	
 	// If no data received, return.
 	dma_count =  UART_RX_BUFF_SIZE - __HAL_DMA_GET_COUNTER(&hdma_usart2_rx);
 	if( dma_count == rx_index ) {
@@ -111,6 +111,21 @@ int Uart_get_char( char* c )
 	return 1;
 }
 
+//-------------------------------------------------------------------------------------------
+
+int uart_peek( char* c ) {
+	unsigned int dma_count;
+	unsigned int rx_index = uart_rx_index;	
+
+	// If no data received, return.
+	dma_count =  UART_RX_BUFF_SIZE - __HAL_DMA_GET_COUNTER(&hdma_usart2_rx);
+	if( dma_count == rx_index ) {
+		return 0;
+	}
+
+	*c = uart_rx_buff[rx_index];
+	return 1;
+}
 //rotemc
 
 void poweroff(void) {
@@ -307,7 +322,7 @@ int main(void) {
 
       char output[32];
       char c;      
-      if( Uart_get_char(&c) > 0 ) {
+      if( uart_get_char(&c) > 0 ) {
         //rotemc HAL_UART_Transmit( &huart2, (uint8_t*)&c, sizeof(c), 200 );
         switch( c )
         {
@@ -340,10 +355,10 @@ int main(void) {
               uint8_t LSBspeed;
               uint8_t MSBspeed;
               int16_t speed;
-              Uart_get_char( &motor );
-              Uart_get_char( (char*) &LSBspeed );
-              Uart_get_char( (char*) &MSBspeed );
-              Uart_get_char( &terminator );
+              uart_get_char( &motor );
+              uart_get_char( (char*) &LSBspeed );
+              uart_get_char( (char*) &MSBspeed );
+              uart_get_char( &terminator );
               speed = (int16_t) ((((uint16_t) MSBspeed) << 8) | (uint16_t) LSBspeed);            
               //sprintf( output, " received m%c %o, %o, %d\n, ", motor, LSBspeed, MSBspeed, speed);
               //HAL_UART_Transmit( &huart2, output, strlen(output), 200);
