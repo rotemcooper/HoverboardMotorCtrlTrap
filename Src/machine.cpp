@@ -13,12 +13,18 @@
 // --------------------------------------- Externs ---------------------------------------
 // ---------------------------------------------------------------------------------------
 
-extern "C" int motorl_ticks;
-extern "C" int motorr_ticks;
+extern "C" volatile int motorl_ticks;
+extern "C" volatile int motorr_ticks;
+extern "C" volatile int pwml;  // global variable for pwm left. -1000 to 1000
+extern "C" volatile int pwmr;  // global variable for pwm right. -1000 to 1000
+int pwmr_dummy;
+
+
 extern "C" void main_health_check(void);
 extern "C" void poweroff(void);
 extern "C" int uart_get_char( char* c );
 extern "C" int uart_peek( char* c );
+
 //extern "C" uint32_t _millis;
 
 // ---------------------------------------------------------------------------------
@@ -176,7 +182,7 @@ void workout_pref_init( WorkoutPrf *prf ) {
 
 class Hall {
   private:
-  int* motor_ticks;
+  volatile int* motor_ticks;
   int ticksCntr;
   int speedCntr;
   int accelCntr;
@@ -187,7 +193,7 @@ class Hall {
   } prev;  
       
   public:
-  Hall( int* motor_ticks_prm ) :
+  Hall( volatile int* motor_ticks_prm ) :
     motor_ticks( motor_ticks_prm ) {
       reset();
       prev.time = millis();
@@ -288,12 +294,14 @@ void hallSensorsTest()
 
 class Motor {
   private:
+  volatile int* pwm;
   int16_t valueLast;
-  int16_t valueSent;
+  int16_t valueSent;  
 
   public:
   Hall hall;
-  Motor( int* motor_ticks_prm ) :
+  Motor( volatile int* motor_ticks_prm, volatile int* pwm_prm ) :
+    pwm( pwm_prm ),
     valueLast( 0 ),
     valueSent( 0 ),
     hall( motor_ticks_prm ) {
@@ -340,8 +348,8 @@ class Motors {
   Motor right;
   Motor left;
   Motors() :
-    right( &motorr_ticks ), 
-    left( &motorl_ticks ) {
+    right( &motorr_ticks, &pwmr_dummy ), //rotemc fix 
+    left( &motorl_ticks, &pwml ) {
   }
 
   // ---------------------------------------------------------------------------------
@@ -1004,7 +1012,7 @@ class Machine {
     while(1)
     {
       while( !Serial.available() ) {
-        motors.windBack( 150 );
+        motors.windBack( 100 /*150*/ ); //rotemc fix
         motors.reset();
         workout( prf );        
       }
@@ -1094,15 +1102,23 @@ Machine machine;
 
 extern "C" void machine_main(void)
 {
+  /*
   while( 1 ) {
     main_health_check(); //rotemc
     HAL_Delay( DELAY_IN_MAIN_LOOP ); //rotemc
     
     if( Serial.available() ) {
+      char input = Serial.peek();
+      switch( input )
+      {
+        case 'q':
+        poweroff();
+        break;
+      }
       Serial.write( Serial.read() );
     }
   }
-  
+  */
   machine.main();
 }
 
