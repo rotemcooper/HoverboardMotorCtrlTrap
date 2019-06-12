@@ -17,6 +17,7 @@ extern "C" int motorl_ticks;
 extern "C" int motorr_ticks;
 extern "C" void main_health_check(void);
 extern "C" void poweroff(void);
+extern "C" int Uart_get_char( char* c );
 //extern "C" uint32_t _millis;
 
 // ---------------------------------------------------------------------------------
@@ -69,7 +70,9 @@ class HardwareSerial {
   }
 
   char read() {
-      return 0;
+    char c = 0;
+    Uart_get_char( &c );
+    return c;
   }
 
   char peek() {
@@ -80,17 +83,20 @@ class HardwareSerial {
   int printf( const char *format, ...) {
     va_list args;
     va_start (args, format);
-    int len = vsprintf (buffer,format, args);
+    int len = vsprintf (buffer, format, args);
     HAL_UART_Transmit( &huart2, (uint8_t*) buffer, len, 200);
     va_end (args);
-    return 0;
+    return len;
   }
 
   void println( const char *str ) {
+    printf( str );
+    printf( "\n" );
   }
 };
 
 void delay( int ms ) {
+  HAL_Delay( ms );
 }
 
 //extern "C" uint32_t HAL_GetTick(void);
@@ -99,9 +105,9 @@ uint32_t millis() {
     return HAL_GetTick();
 } 
 
-int digitalRead( int pin ) {
-    return 0;
-}
+//int digitalRead( int pin ) {
+//    return 0;
+//}
 
 // ----------------------------------------------------------------------------------------
 
