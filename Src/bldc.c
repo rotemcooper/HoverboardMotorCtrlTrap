@@ -183,8 +183,8 @@ volatile uint64_t posr_isr_cnt=0;
 volatile uint64_t motorl_comm_isr_cnt=0;
 volatile uint64_t posr_isr_cnt_comm=0;
 
-volatile uint64_t posl_no_change_cntr=0;
-volatile uint64_t posr_no_change_cntr=0;
+//volatile uint64_t posl_no_change_cntr=0;
+//volatile uint64_t posr_no_change_cntr=0;
 
 volatile uint posl_last=0;
 volatile uint posr_last=0;
@@ -400,11 +400,8 @@ void DMA1_Channel1_IRQHandler() {
   */
   
   if( posl != posl_last ) {
-    posl_no_change_cntr = 0;
-
-    motorl_tbl_index = posl*COMM_PER_HALL_TICK;
-    
-
+    //posl_no_change_cntr = 0;
+    motorl_tbl_index = posl*COMM_PER_HALL_TICK;    
     motorl_ticks += hall_tbl[posl_last][posl];
     posl_last = posl;
 
@@ -414,8 +411,6 @@ void DMA1_Channel1_IRQHandler() {
     else if (motorl_ticks < motorl_ticks_last) {
       motorl_dir = -1;
     }
-    //blockPWMsin(motorl_dir, pwml, motorl_tbl_index, &ul, &vl, &wl);
-
     motorl_ticks_last = motorl_ticks;      
 
     motorl_speed = isr_cnt - posl_isr_cnt;
@@ -430,47 +425,26 @@ void DMA1_Channel1_IRQHandler() {
             motorl_tbl_index != motorl_tbl_index_next)
   {
     motorl_comm_isr_cnt = isr_cnt + motorl_comm_res;
-    motorl_tbl_index = (motorl_tbl_index + SIN_TBL_SIZE + motorl_dir)%SIN_TBL_SIZE;  
+    motorl_tbl_index = (motorl_tbl_index + SIN_TBL_SIZE + motorl_dir)%SIN_TBL_SIZE;    
+  }
 
-    //blockPWMsin(motorl_dir, pwml, motorl_tbl_index, &ul, &vl, &wl);
-  }  
-  blockPWMsin(motorl_dir, pwml, motorl_tbl_index, &ul, &vl, &wl);
-
-  //------------------------------------------------------------------------------
-  //rotemc
-
-  blockPhaseCurrent(posl, adc_buffer.rl1 - offsetrl1, adc_buffer.rl2 - offsetrl2, &curl);
-
-  //setScopeChannel(2, (adc_buffer.rl1 - offsetrl1) / 8);
-  //setScopeChannel(3, (adc_buffer.rl2 - offsetrl2) / 8);
-
-
-  // uint8_t buzz(uint16_t *notes, uint32_t len){
-    // static uint32_t counter = 0;
-    // static uint32_t timer = 0;
-    // if(len == 0){
-        // return(0);
-    // }
-    
-    // struct {
-        // uint16_t freq : 4;
-        // uint16_t volume : 4;
-        // uint16_t time : 8;
-    // } note = notes[counter];
-    
-    // if(timer / 500 == note.time){
-        // timer = 0;
-        // counter++;
-    // }
-    
-    // if(counter == len){
-        // counter = 0;
-    // }
-
-    // timer++;
-    // return(note.freq);
-  // }
-
+  if( isr_cnt < motorl_comm_isr_cnt + 1000 ) {
+    // Motor moving -> use sinusoidal commutation
+    blockPWMsin(motorl_dir, pwml, motorl_tbl_index, &ul, &vl, &wl);
+    LEFT_TIM->LEFT_TIM_U = CLAMP(ul, 10, pwm_res-10);
+    LEFT_TIM->LEFT_TIM_V = CLAMP(vl, 10, pwm_res-10);
+    LEFT_TIM->LEFT_TIM_W = CLAMP(wl, 10, pwm_res-10);
+  }
+  else {
+    // Motor stoped -> use trapezoidal commutation
+    blockPWM((pwml*1000)/1500, posl, &ul, &vl, &wl);
+    LEFT_TIM->LEFT_TIM_U = CLAMP(ul + pwm_res / 2, 10, pwm_res-10);
+    LEFT_TIM->LEFT_TIM_V = CLAMP(vl + pwm_res / 2, 10, pwm_res-10);
+    LEFT_TIM->LEFT_TIM_W = CLAMP(wl + pwm_res / 2, 10, pwm_res-10);
+  }
+  
+  //blockPWM(pwml, posl, &ul, &vl, &wl);
+  //blockPWMsin(motorl_dir, pwml, motorl_tbl_index, &ul, &vl, &wl);
 
   //create square wave for buzzer
   buzzerTimer++;
@@ -486,46 +460,11 @@ void DMA1_Channel1_IRQHandler() {
   //rotemc blockPWM(pwml, posl, &ul, &vl, &wl);
   blockPWM(pwmr, posr, &ur, &vr, &wr);
 
-/*
-  int weakul, weakvl, weakwl;
-  if (pwml > 0) {
-    blockPWM(weakl, (posl+5) % 6, &weakul, &weakvl, &weakwl);
-  } else {
-    blockPWM(-weakl, (posl+1) % 6, &weakul, &weakvl, &weakwl);
-  }
-  ul += weakul;
-  vl += weakvl;
-  wl += weakwl;
-*/
-
-  //rotemc
-  //ull = (ALPHA*ull+ul)/(ALPHA+1);
-  //vll = (ALPHA*vll+vl)/(ALPHA+1);
-  //wll = (ALPHA*wll+wl)/(ALPHA+1);
-  //rotemc
-
-/*
-  int weakur, weakvr, weakwr;
-  if (pwmr > 0) {
-    blockPWM(weakr, (posr+5) % 6, &weakur, &weakvr, &weakwr);
-  } else {
-    blockPWM(-weakr, (posr+1) % 6, &weakur, &weakvr, &weakwr);
-  }
-  ur += weakur;
-  vr += weakvr;
-  wr += weakwr;
-*/
-
-  //rotemc
-  //urr = (ALPHA*urr+ur)/(ALPHA+1);
-  //vrr = (ALPHA*vrr+vr)/(ALPHA+1);
-  //wrr = (ALPHA*wrr+wr)/(ALPHA+1);
-  //rotemc
-
-  
+  /*
   LEFT_TIM->LEFT_TIM_U = CLAMP(ul, 10, pwm_res-10);
   LEFT_TIM->LEFT_TIM_V = CLAMP(vl, 10, pwm_res-10);
   LEFT_TIM->LEFT_TIM_W = CLAMP(wl, 10, pwm_res-10);
+*/
 /*
   
   LEFT_TIM->LEFT_TIM_U = CLAMP(ul + pwm_res / 2, 10, pwm_res-10);
