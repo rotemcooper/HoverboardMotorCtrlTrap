@@ -281,12 +281,13 @@ inline void blockPWMsin(int dir, int pwm, int pos, int *u, int *v, int *w) {
   if( dir < 0 ) {
     pos = (pos + SIN_TBL_SIZE + offset_pull)%SIN_TBL_SIZE;
   }
-  #if 1
+  #if 0
   else {
-    //rotemc pwm -= 100;//rotemc 200;
+    pwm -= 100;//rotemc 200;
   }
   #endif  
 
+  // Integer table math
   if( pwm >= 0 ) {
     *v= (int) (((uint64_t) pwm * (uint64_t) sin_tbl[pos])/100000000);
     *u= (int) (((uint64_t) pwm * (uint64_t) sin_tbl[(pos +   ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE])/100000000);
@@ -306,8 +307,7 @@ inline void blockPWMsin(int dir, int pwm, int pos, int *u, int *v, int *w) {
   last_sin_idx = (last_sin_idx+1)%SIN_TBL_SIZE;
   #endif
 
-/*
-  
+  /* // Float table math 
   if( pwm >= 0 ) {
     *v= (int) ((float) pwm * sin_tbl_flt[pos]);
     *u= (int) ((float) pwm * sin_tbl_flt[(pos + ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
@@ -318,7 +318,7 @@ inline void blockPWMsin(int dir, int pwm, int pos, int *u, int *v, int *w) {
     *v= (int) ((float) pwm * sin_tbl_flt[(pos + ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
     *u= (int) ((float) pwm * sin_tbl_flt[(pos + 2*ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE]);
   }  
-*/
+  */
   
 }
 
@@ -399,6 +399,7 @@ void DMA1_Channel1_IRQHandler() {
   }
   */
   
+  // Sinusoidal commutation logic
   if( posl != posl_last ) {
     //posl_no_change_cntr = 0;
     motorl_tbl_index = posl*COMM_PER_HALL_TICK;    
@@ -442,9 +443,14 @@ void DMA1_Channel1_IRQHandler() {
     LEFT_TIM->LEFT_TIM_V = CLAMP(vl + pwm_res / 2, 10, pwm_res-10);
     LEFT_TIM->LEFT_TIM_W = CLAMP(wl + pwm_res / 2, 10, pwm_res-10);
   }
-  
   //blockPWM(pwml, posl, &ul, &vl, &wl);
   //blockPWMsin(motorl_dir, pwml, motorl_tbl_index, &ul, &vl, &wl);
+  
+  //update PWM channels based on position
+  blockPWM(pwmr, posr, &ur, &vr, &wr);
+  RIGHT_TIM->RIGHT_TIM_U = CLAMP(ur + pwm_res / 2, 10, pwm_res-10);
+  RIGHT_TIM->RIGHT_TIM_V = CLAMP(vr + pwm_res / 2, 10, pwm_res-10);
+  RIGHT_TIM->RIGHT_TIM_W = CLAMP(wr + pwm_res / 2, 10, pwm_res-10);
 
   //create square wave for buzzer
   buzzerTimer++;
@@ -454,35 +460,5 @@ void DMA1_Channel1_IRQHandler() {
     }
   } else {
       HAL_GPIO_WritePin(BUZZER_PORT, BUZZER_PIN, 0);
-  }
-
-  //update PWM channels based on position
-  //rotemc blockPWM(pwml, posl, &ul, &vl, &wl);
-  blockPWM(pwmr, posr, &ur, &vr, &wr);
-
-  /*
-  LEFT_TIM->LEFT_TIM_U = CLAMP(ul, 10, pwm_res-10);
-  LEFT_TIM->LEFT_TIM_V = CLAMP(vl, 10, pwm_res-10);
-  LEFT_TIM->LEFT_TIM_W = CLAMP(wl, 10, pwm_res-10);
-*/
-/*
-  
-  LEFT_TIM->LEFT_TIM_U = CLAMP(ul + pwm_res / 2, 10, pwm_res-10);
-  LEFT_TIM->LEFT_TIM_V = CLAMP(vl + pwm_res / 2, 10, pwm_res-10);
-  LEFT_TIM->LEFT_TIM_W = CLAMP(wl + pwm_res / 2, 10, pwm_res-10);
-*/
-
-  RIGHT_TIM->RIGHT_TIM_U = CLAMP(ur + pwm_res / 2, 10, pwm_res-10);
-  RIGHT_TIM->RIGHT_TIM_V = CLAMP(vr + pwm_res / 2, 10, pwm_res-10);
-  RIGHT_TIM->RIGHT_TIM_W = CLAMP(wr + pwm_res / 2, 10, pwm_res-10);
-  
-/*
-  LEFT_TIM->LEFT_TIM_U = CLAMP(ull + pwm_res / 2, 10, pwm_res-10);
-  LEFT_TIM->LEFT_TIM_V = CLAMP(vll + pwm_res / 2, 10, pwm_res-10);
-  LEFT_TIM->LEFT_TIM_W = CLAMP(wll + pwm_res / 2, 10, pwm_res-10);
-
-  RIGHT_TIM->RIGHT_TIM_U = CLAMP(urr + pwm_res / 2, 10, pwm_res-10);
-  RIGHT_TIM->RIGHT_TIM_V = CLAMP(vrr + pwm_res / 2, 10, pwm_res-10);
-  RIGHT_TIM->RIGHT_TIM_W = CLAMP(wrr + pwm_res / 2, 10, pwm_res-10);
-  */
+  }  
 }

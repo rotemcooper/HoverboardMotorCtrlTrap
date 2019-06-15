@@ -184,6 +184,7 @@ class Hall {
   private:
   volatile int* motor_ticks;
   int ticksCntr;
+  int ticksCntrOffset;
   int speedCntr;
   int accelCntr;
   struct {
@@ -206,6 +207,7 @@ class Hall {
   void reset() {
     //rotemc complete badStateCntr = 0;
     ticksCntr = 0;
+    ticksCntrOffset = -(*motor_ticks);
     speedCntr = 0;
     accelCntr = 0;  
   }
@@ -235,7 +237,7 @@ class Hall {
     }
     
     ticksCntr += tick; */
-    ticksCntr = -(*motor_ticks);
+    ticksCntr = -(*motor_ticks) - ticksCntrOffset;
 
     //--------------------------------------------------------------------------------
 
