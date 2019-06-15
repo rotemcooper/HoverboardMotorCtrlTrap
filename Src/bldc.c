@@ -181,7 +181,7 @@ volatile uint64_t posl_isr_cnt=0;
 volatile uint64_t posr_isr_cnt=0;
 
 volatile uint64_t motorl_comm_isr_cnt=0;
-volatile uint64_t posr_isr_cnt_comm=0;
+volatile uint64_t motorr_comm_isr_cnt=0;
 
 //volatile uint64_t posl_no_change_cntr=0;
 //volatile uint64_t posr_no_change_cntr=0;
@@ -202,7 +202,7 @@ volatile uint motorl_speed=0;
 volatile uint motorr_speed=0;
 
 volatile uint motorl_comm_res=0;
-volatile uint motorr_res=0;
+volatile uint motorr_comm_res=0;
 
 volatile int motorl_tbl_index=0;
 volatile int motorr_tbl_index=0;
@@ -398,8 +398,9 @@ void DMA1_Channel1_IRQHandler() {
     }
   }
   */
-  
-  // Sinusoidal commutation logic
+  // -----------------------------------------------------------------------------
+
+  // Sinusoidal commutation logic - left motor
   if( posl != posl_last ) {
     //posl_no_change_cntr = 0;
     motorl_tbl_index = posl*COMM_PER_HALL_TICK;    
@@ -446,14 +447,65 @@ void DMA1_Channel1_IRQHandler() {
   //blockPWM(pwml, posl, &ul, &vl, &wl);
   //blockPWMsin(motorl_dir, pwml, motorl_tbl_index, &ul, &vl, &wl);
   
-  //update PWM channels based on position
-  pwmr = CLAMP(pwmr, -100, 100);
+  // --------------------------------------------------------------------------------
   
+  // Sinusoidal commutation logic - right motor
+  if( posr != posr_last ) {
+    //posr_no_change_cntr = 0;
+    motorr_tbl_index = posr*COMM_PER_HALL_TICK;    
+    motorr_ticks += hall_tbl[posr_last][posr];
+    posr_last = posr;
+
+    if (motorr_ticks > motorr_ticks_last) {
+      motorr_dir = 1;
+    }
+    else if (motorr_ticks < motorr_ticks_last) {
+      motorr_dir = -1;
+    }
+    motorr_ticks_last = motorr_ticks;      
+
+    motorr_speed = isr_cnt - posr_isr_cnt;
+    posr_isr_cnt = isr_cnt;
+
+    motorr_comm_res = motorr_speed/COMM_PER_HALL_TICK;
+    motorr_comm_isr_cnt = isr_cnt + motorr_comm_res;
+
+    motorr_tbl_index_next = (motorr_tbl_index + SIN_TBL_SIZE + COMM_PER_HALL_TICK*motorr_dir)%SIN_TBL_SIZE;  
+  }
+  else if ( isr_cnt == motorr_comm_isr_cnt &&
+            motorr_tbl_index != motorr_tbl_index_next)
+  {
+    motorr_comm_isr_cnt = isr_cnt + motorr_comm_res;
+    motorr_tbl_index = (motorr_tbl_index + SIN_TBL_SIZE + motorr_dir)%SIN_TBL_SIZE;    
+  }
+
+  if( isr_cnt < motorr_comm_isr_cnt + 500 ) {
+    // Motor moving -> use sinusoidal commutation
+    blockPWMsin(motorr_dir, pwmr, motorr_tbl_index, &ur, &vr, &wr);
+    RIGHT_TIM->RIGHT_TIM_U = CLAMP(ur, 10, pwm_res-10);
+    RIGHT_TIM->RIGHT_TIM_V = CLAMP(vr, 10, pwm_res-10);
+    RIGHT_TIM->RIGHT_TIM_W = CLAMP(wr, 10, pwm_res-10);
+  }
+  else {
+    // Motor stoped -> use trapezoidal commutation
+    blockPWM((pwmr*1000)/2000, posr, &ur, &vr, &wr);
+    RIGHT_TIM->RIGHT_TIM_U = CLAMP(ur + pwm_res / 2, 10, pwm_res-10);
+    RIGHT_TIM->RIGHT_TIM_V = CLAMP(vr + pwm_res / 2, 10, pwm_res-10);
+    RIGHT_TIM->RIGHT_TIM_W = CLAMP(wr + pwm_res / 2, 10, pwm_res-10);
+  }
+  //blockPWM(pwmr, posr, &ur, &vr, &wr);
+  //blockPWMsin(motorr_dir, pwmr, motorr_tbl_index, &ur, &vr, &wr);
+  
+  //update PWM channels based on position
+  pwmr = CLAMP(pwmr, -300, 300);
+
   blockPWM((pwmr*1000)/2000, posr, &ur, &vr, &wr);
   RIGHT_TIM->RIGHT_TIM_U = CLAMP(ur + pwm_res / 2, 10, pwm_res-10);
   RIGHT_TIM->RIGHT_TIM_V = CLAMP(vr + pwm_res / 2, 10, pwm_res-10);
   RIGHT_TIM->RIGHT_TIM_W = CLAMP(wr + pwm_res / 2, 10, pwm_res-10);
-
+  
+  // ------------------------------------------------------------------------------------
+  
   //create square wave for buzzer
   buzzerTimer++;
   if (buzzerFreq != 0 && (buzzerTimer / 5000) % (buzzerPattern + 1) == 0) {
