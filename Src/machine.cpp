@@ -55,9 +55,9 @@ typedef enum {
 // ---------------------------------------------------------------------------------------
 // ----------------------------------- Need to implement these ---------------------------
 // ---------------------------------------------------------------------------------------
-#define constrain CLAMP
+#define constrain(x, low, high) CLAMP(x, low, high)
 #define max MAX
-#define byte char
+#define byte unsigned char
 #define PI 3.14159265359
 extern UART_HandleTypeDef huart2;
 
@@ -130,7 +130,7 @@ class WorkoutPrf {
   
   public:
   const char* const name;
-  const uint len;
+  const int len;
   const byte* const tbl;
   int addPull;
   int addRel;
@@ -459,7 +459,7 @@ void motorsUpDownTest( int max )
 // Specifies 8 bits resistance value for each cable pull distance in cm.
  
 #define W1 50
-static byte weight_tbl[] = {/*0,   0,   0,   0,   0,   0,   0,   0,*/  0,   0,
+ byte weight_tbl[] = {/*0,   0,   0,   0,   0,   0,   0,   0,*/  0,   0,
                        W1,  W1,  W1,  W1,  W1,  W1,  W1,  W1,  W1,  W1,
                        W1,  W1,  W1,  W1,  W1,  W1,  W1,  W1,  W1,  W1,
                        W1,  W1,  W1,  W1,  W1,  W1,  W1,  W1,  W1,  W1,
@@ -473,7 +473,7 @@ WorkoutPrf weight_prf( "Weight", 0, 0, 4, 4, sizeof(weight_tbl), weight_tbl );
 
 // ---------------------------------------------------------------------------------
 
-static byte spring_tbl[] = {   /*0,   0,   0,   0,   0,   0,   0,   0,   0,   0,*/
+ byte spring_tbl[] = {   /*0,   0,   0,   0,   0,   0,   0,   0,   0,   0,*/
                         0,   1,   2,   3,   4,   5,   6,   7,   8,   9,
                        10,  11,  12,  13,  14,  15,  16,  17,  18,  19,
                        20,  21,  22,  23,  24,  25,  26,  27,  28,  29,
@@ -494,7 +494,7 @@ WorkoutPrf spring_prf( "Spring", 0, 0, 4, 4, sizeof(spring_tbl), spring_tbl );
 
 // ---------------------------------------------------------------------------------
 
-static byte inv_spring_tbl[] = {/*  0,  0,  0,  0,  0,  0,  0,  0,*/  0,  0,
+ byte inv_spring_tbl[] = {/*  0,  0,  0,  0,  0,  0,  0,  0,*/  0,  0,
                           149,148,147,146,145,144,143,142,141,140,
                           139,138,137,136,135,134,133,132,131,130,
                           129,128,127,126,125,124,123,122,121,120,
@@ -513,7 +513,7 @@ WorkoutPrf inv_spring_prf( "Inv-Spring", 0, 0, 2, 2, sizeof(inv_spring_tbl), inv
 
 // ---------------------------------------------------------------------------------
 
-static byte mtn_tbl[] = {  /* 0,   0,   0,   0,   0,   0,   0,   0,*/   0,   0,
+ byte mtn_tbl[] = {  /* 0,   0,   0,   0,   0,   0,   0,   0,*/   0,   0,
                     50,  52,  54,  56,  58,  60,  62,  64,  66,  68,
                     70,  72,  74,  76,  78,  80,  82,  84,  86,  88,
                     90,  92,  94,  96,  98, 100, 102, 104, 106, 108,
@@ -527,7 +527,7 @@ WorkoutPrf mtn_prf( "Mountain", 0, 0, 4, 4, sizeof(mtn_tbl), mtn_tbl );
 
 // ---------------------------------------------------------------------------------
 
-static byte vee_tbl[] =   {/*0,   0,   0,   0,   0,   0,   0,   0,*/  0,   0,
+ byte vee_tbl[] =   {/*0,   0,   0,   0,   0,   0,   0,   0,*/  0,   0,
                    128, 126, 124, 122, 120, 118, 116, 114, 112, 110,
                    108, 106, 104, 102, 100,  98,  96,  94,  92,  90,
                     88,  86,  84,  82,  80,  78,  76,  74,  72,  70,
@@ -772,7 +772,7 @@ class Machine {
         // Print ticks, distance, torque, etc.
         Serial.printf("cnt=%d, prf=%s, add=%d/%d, mult=%d/%d, ticks=%d/%d, dist=%d/%d, speed=%d/%d, accel=%d/%d, torque=%d/%d\n",
                      cnt++, prf->name, prf->addPull, prf->addRel, prf->multPull, prf->multRel, motors.right.hall.ticks(), motors.left.hall.ticks(),
-                     rightCable.distRaw(), leftCable.distRaw(), motors.right.hall.speed(), motors.left.hall.speed(),
+                     rightCable.dist(), leftCable.dist(), motors.right.hall.speed(), motors.left.hall.speed(),
                      motors.right.hall.accel()/10, motors.left.hall.accel()/10, rightCable.torq(), leftCable.torq() );
       }
     }

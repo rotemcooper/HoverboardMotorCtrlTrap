@@ -283,7 +283,7 @@ inline void blockPWMsin(int dir, int pwm, int pos, int *u, int *v, int *w) {
   }
   #if 1
   else {
-    pwm -= 100;//rotemc 200;
+    //rotemc pwm -= 100;//rotemc 200;
   }
   #endif  
 
@@ -428,7 +428,7 @@ void DMA1_Channel1_IRQHandler() {
     motorl_tbl_index = (motorl_tbl_index + SIN_TBL_SIZE + motorl_dir)%SIN_TBL_SIZE;    
   }
 
-  if( isr_cnt < motorl_comm_isr_cnt + 1000 ) {
+  if( isr_cnt < motorl_comm_isr_cnt + 500 ) {
     // Motor moving -> use sinusoidal commutation
     blockPWMsin(motorl_dir, pwml, motorl_tbl_index, &ul, &vl, &wl);
     LEFT_TIM->LEFT_TIM_U = CLAMP(ul, 10, pwm_res-10);
@@ -437,7 +437,7 @@ void DMA1_Channel1_IRQHandler() {
   }
   else {
     // Motor stoped -> use trapezoidal commutation
-    blockPWM((pwml*1000)/1500, posl, &ul, &vl, &wl);
+    blockPWM((pwml*1000)/2000, posl, &ul, &vl, &wl);
     LEFT_TIM->LEFT_TIM_U = CLAMP(ul + pwm_res / 2, 10, pwm_res-10);
     LEFT_TIM->LEFT_TIM_V = CLAMP(vl + pwm_res / 2, 10, pwm_res-10);
     LEFT_TIM->LEFT_TIM_W = CLAMP(wl + pwm_res / 2, 10, pwm_res-10);
