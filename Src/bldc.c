@@ -447,7 +447,9 @@ void DMA1_Channel1_IRQHandler() {
   //blockPWMsin(motorl_dir, pwml, motorl_tbl_index, &ul, &vl, &wl);
   
   //update PWM channels based on position
-  blockPWM(pwmr, posr, &ur, &vr, &wr);
+  pwmr = CLAMP(pwmr, -100, 100);
+  
+  blockPWM((pwmr*1000)/2000, posr, &ur, &vr, &wr);
   RIGHT_TIM->RIGHT_TIM_U = CLAMP(ur + pwm_res / 2, 10, pwm_res-10);
   RIGHT_TIM->RIGHT_TIM_V = CLAMP(vr + pwm_res / 2, 10, pwm_res-10);
   RIGHT_TIM->RIGHT_TIM_W = CLAMP(wr + pwm_res / 2, 10, pwm_res-10);

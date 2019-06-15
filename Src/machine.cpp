@@ -353,7 +353,7 @@ class Motors {
   Motor right;
   Motor left;
   Motors() :
-    right( &motorr_ticks, &pwmr_dummy ), //rotemc fix 
+    right( &motorr_ticks, &pwmr ), //rotemc fix 
     left( &motorl_ticks, &pwml ) {
   }
 
