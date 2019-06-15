@@ -444,9 +444,7 @@ void DMA1_Channel1_IRQHandler() {
     LEFT_TIM->LEFT_TIM_V = CLAMP(vl + pwm_res / 2, 10, pwm_res-10);
     LEFT_TIM->LEFT_TIM_W = CLAMP(wl + pwm_res / 2, 10, pwm_res-10);
   }
-  //blockPWM(pwml, posl, &ul, &vl, &wl);
-  //blockPWMsin(motorl_dir, pwml, motorl_tbl_index, &ul, &vl, &wl);
-  
+    
   // --------------------------------------------------------------------------------
   
   // Sinusoidal commutation logic - right motor
@@ -478,7 +476,7 @@ void DMA1_Channel1_IRQHandler() {
     motorr_comm_isr_cnt = isr_cnt + motorr_comm_res;
     motorr_tbl_index = (motorr_tbl_index + SIN_TBL_SIZE + motorr_dir)%SIN_TBL_SIZE;    
   }
-
+/*
   if( isr_cnt < motorr_comm_isr_cnt + 500 ) {
     // Motor moving -> use sinusoidal commutation
     blockPWMsin(motorr_dir, pwmr, motorr_tbl_index, &ur, &vr, &wr);
@@ -495,9 +493,9 @@ void DMA1_Channel1_IRQHandler() {
   }
   //blockPWM(pwmr, posr, &ur, &vr, &wr);
   //blockPWMsin(motorr_dir, pwmr, motorr_tbl_index, &ur, &vr, &wr);
-  
+  */
   //update PWM channels based on position
-  pwmr = CLAMP(pwmr, -300, 300);
+  //pwmr = CLAMP(pwmr, -200, 200);
 
   blockPWM((pwmr*1000)/2000, posr, &ur, &vr, &wr);
   RIGHT_TIM->RIGHT_TIM_U = CLAMP(ur + pwm_res / 2, 10, pwm_res-10);
