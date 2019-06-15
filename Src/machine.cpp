@@ -17,8 +17,7 @@ extern "C" volatile int motorl_ticks;
 extern "C" volatile int motorr_ticks;
 extern "C" volatile int pwml;  // global variable for pwm left. -1000 to 1000
 extern "C" volatile int pwmr;  // global variable for pwm right. -1000 to 1000
-int pwmr_dummy;
-
+extern "C" int offset_pull;
 
 extern "C" void main_health_check(void);
 extern "C" void poweroff(void);
@@ -150,9 +149,9 @@ class WorkoutPrf {
     multRelInit( multRelInitPrm ),
     len( lenPrm ),
     tbl( tblPrm )
-  {
-    reset();
-  }
+    {
+      reset();
+    }
 
     void reset() {
       addPull = addPullInit;
@@ -416,7 +415,7 @@ void motorsUpDownTest( int max )
   Motors motors;
   
   int i=0;
-  const uint loopCnt = 250;
+  const int loopCnt = 250;
   const uint loopDelay = 0;
   for(; i<max; i+=10)
   //for(; i<max; i+=1 )
@@ -666,8 +665,8 @@ class Cable {
       }
       //torque -= motor->hall.accel()*4;           
     }
-    torque -= speed;
-    torque -= motor->hall.accel()/4; 
+    torque -= speed; // *1
+    torque -= motor->hall.accel()/4; // /4; 
     
     if( (distance < 3) || 
         (distance > 30 && speed <= 0) )
@@ -1004,9 +1003,32 @@ class Machine {
         return true;      
       
       default:
-        return false;
+        return debug();
     }
     return false;  
+  }
+
+  // ---------------------------------------------------------------------------------
+
+  bool debug() {
+    if( !Serial.available() ) {
+      return true;
+    }
+
+    switch( Serial.peek() ) {
+      case 'a':
+        offset_pull++;
+        Serial.read();
+        Serial.printf( "offset_pull = %d\n, ", offset_pull );
+        return true;            
+          
+      case 'z':
+        offset_pull--;
+        Serial.read();
+        Serial.printf( "offset_pull = %d\n, ", offset_pull );
+        return true;
+    }
+    return false;
   }
 
   // ---------------------------------------------------------------------------------

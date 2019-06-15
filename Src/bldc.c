@@ -281,7 +281,7 @@ inline void blockPWMsin(int dir, int pwm, int pos, int *u, int *v, int *w) {
   if( dir < 0 ) {
     pos = (pos + SIN_TBL_SIZE + offset_pull)%SIN_TBL_SIZE;
   }
-  #if 0
+  #if 1
   else {
     pwm -= 100;//rotemc 200;
   }
