@@ -433,7 +433,7 @@ void DMA1_Channel1_IRQHandler() {
     motorl_tbl_index = (motorl_tbl_index + SIN_TBL_SIZE + motorl_dir)%SIN_TBL_SIZE;    
   }
 
-  if( isr_cnt < motorl_comm_isr_cnt + 500 ) {
+  if( isr_cnt < motorl_comm_isr_cnt + 1000 ) {
     // Motor moving -> use sinusoidal commutation
     blockPWMsin(motorl_dir, pwml, motorl_tbl_index, &ul, &vl, &wl);
     LEFT_TIM->LEFT_TIM_U = CLAMP(ul, 10, pwm_res-10);
