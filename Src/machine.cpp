@@ -851,10 +851,18 @@ class Machine {
     int ticks = motor->hall.ticks();
     int torque = 150;
     int torqueMax = torque;
+    int i=0;
     while( continueWorkout() && motor->hall.ticks() > 50 && ticks > 50 &&
          (motor->hall.ticks() + 50) > ticks )
     {
       Serial.printf("Strength test torque=%d\n", torque );
+      motor->torqueSmooth( torque );
+      motorOther->torqueSmooth( 150 );
+      if( i%1000 == 0 ) {
+        torque += 10;
+        torqueMax = max( torqueMax, torque );        
+      }
+      /*
       for(int i=0; i<100; i++) {
         motor->hall.ticks();
         motorOther->hall.ticks();
@@ -863,6 +871,7 @@ class Machine {
       }      
       torqueMax = max( torqueMax, torque );
       torque += 10;
+      */
     }
 
     int poundMax = convTbl[0][1];
