@@ -238,6 +238,10 @@ const uint32_t sin_tbl[SIN_TBL_SIZE]= {
 
 };
 
+inline int sin_tbl_index( int index, int offset ) {
+  return (index + SIN_TBL_SIZE + offset) % SIN_TBL_SIZE; 
+} 
+  
 /*
 const float sin_tbl_flt[SIN_TBL_SIZE]= {	
 
@@ -424,13 +428,13 @@ void DMA1_Channel1_IRQHandler() {
     motorl_comm_res = (motorl_speed/COMM_PER_HALL_TICK) + 1;
     motorl_comm_isr_cnt = isr_cnt + motorl_comm_res;
 
-    motorl_tbl_index_next = (motorl_tbl_index + SIN_TBL_SIZE + COMM_PER_HALL_TICK*motorl_dir)%SIN_TBL_SIZE;  
+    motorl_tbl_index_next = sin_tbl_index(motorl_tbl_index, COMM_PER_HALL_TICK*motorl_dir);  
   }
   else if ( isr_cnt == motorl_comm_isr_cnt &&
-            motorl_tbl_index != motorl_tbl_index_next)
+            motorl_tbl_index != motorl_tbl_index_next )
   {
     motorl_comm_isr_cnt = isr_cnt + motorl_comm_res;
-    motorl_tbl_index = (motorl_tbl_index + SIN_TBL_SIZE + motorl_dir)%SIN_TBL_SIZE;    
+    motorl_tbl_index = sin_tbl_index(motorl_tbl_index, motorl_dir);    
   }
 
   if( isr_cnt < motorl_comm_isr_cnt + 2000 ) {
