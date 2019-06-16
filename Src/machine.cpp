@@ -321,17 +321,29 @@ class Motor {
 
   void torqueSmooth( int16_t value ) {
     int diff = value - valueLast;
-    if( diff > 0 ) {
+    if( diff >= 4 ) {
+      valueLast += 4;        
+    }
+    else if( diff >= 2 ) {
       valueLast += 2;        
     }
-    else if( diff < 0 ) {
+    else if( diff >= 1 ) {
+      valueLast += 1;        
+    }
+    else if( diff <= -4 ) {
+      valueLast -= 4;     
+    }
+    else if( diff <= -2 ) {
       valueLast -= 2;     
     }
-
-    if( valueSent != valueLast ) {
-      valueSent = valueLast;
-      torque( valueLast );   
+    else if( diff <= -1 ) {
+      valueLast -= 1;     
     }
+
+    //if( valueSent != valueLast ) {
+    //  valueSent = valueLast;
+      torque( valueLast );   
+    //}
      
   }
 
@@ -661,7 +673,7 @@ class Cable {
       torque *= prf->multRel;
       if( torque != 0 ) {
         torque += prf->addRel;
-        torque += dirComp( DIRECTION_COMP );        
+        torque += dirComp( 0 /*DIRECTION_COMP*/ );        
       }
       //torque -= motor->hall.accel()*4;           
     }
@@ -952,7 +964,7 @@ class Machine {
   bool continueWorkout()
   {
     main_health_check(); //rotemc
-    HAL_Delay( 1/* DELAY_IN_MAIN_LOOP*/ ); //rotemc
+    HAL_Delay( 1 /*DELAY_IN_MAIN_LOOP*/ ); //rotemc
     
     if( !Serial.available() ) {
       return true;

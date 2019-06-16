@@ -54,7 +54,7 @@ const signed char hall_tbl[6][6] = { {00, +1, 00, 00, 00, -1},
 //rotemc
 
 
-inline void blockPWM(int pwm, int pos, int *u, int *v, int *w) {
+inline void blockPWM(int dir, int pwm, int pos, int *u, int *v, int *w) {
   
   //rotemc
   //*u = pwm;
@@ -62,7 +62,10 @@ inline void blockPWM(int pwm, int pos, int *u, int *v, int *w) {
   //*w = pwm;
   //return;
   //rotemc
-  
+
+  if( dir > 0 ) {
+    pwm -= 100; //rotemc 200;
+  }  
   
   switch(pos) {
     case 0:
@@ -282,7 +285,7 @@ inline void blockPWMsin(int dir, int pwm, int pos, int *u, int *v, int *w) {
     pos = (pos + SIN_TBL_SIZE + offset_pull)%SIN_TBL_SIZE;
   }
   #if 1
-  else {
+  else if( dir > 0 ) {
     pwm -= 100;//rotemc 200;
   }
   #endif  
@@ -439,7 +442,7 @@ void DMA1_Channel1_IRQHandler() {
   }
   else {
     // Motor stoped -> use trapezoidal commutation
-    blockPWM((pwml*1000)/2000, posl, &ul, &vl, &wl);
+    blockPWM(motorl_dir, (pwml*1000)/2000, posl, &ul, &vl, &wl);
     LEFT_TIM->LEFT_TIM_U = CLAMP(ul + pwm_res / 2, 10, pwm_res-10);
     LEFT_TIM->LEFT_TIM_V = CLAMP(vl + pwm_res / 2, 10, pwm_res-10);
     LEFT_TIM->LEFT_TIM_W = CLAMP(wl + pwm_res / 2, 10, pwm_res-10);
@@ -497,7 +500,7 @@ void DMA1_Channel1_IRQHandler() {
   //update PWM channels based on position
   //pwmr = CLAMP(pwmr, -200, 200);
 
-  blockPWM((pwmr*1000)/2000, posr, &ur, &vr, &wr);
+  blockPWM(motorr_dir, (pwmr*1000)/2000, posr, &ur, &vr, &wr);
   RIGHT_TIM->RIGHT_TIM_U = CLAMP(ur + pwm_res / 2, 10, pwm_res-10);
   RIGHT_TIM->RIGHT_TIM_V = CLAMP(vr + pwm_res / 2, 10, pwm_res-10);
   RIGHT_TIM->RIGHT_TIM_W = CLAMP(wr + pwm_res / 2, 10, pwm_res-10);
