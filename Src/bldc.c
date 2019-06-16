@@ -440,9 +440,9 @@ void DMA1_Channel1_IRQHandler() {
   if( isr_cnt < motorl_comm_isr_cnt + 2000 ) {
     // Motor moving -> use sinusoidal commutation
     blockPWMsin(motorl_dir, pwml, motorl_tbl_index, &ul, &vl, &wl);
-    LEFT_TIM->LEFT_TIM_U = CLAMP(ul, 10, pwm_res-10);
-    LEFT_TIM->LEFT_TIM_V = CLAMP(vl, 10, pwm_res-10);
-    LEFT_TIM->LEFT_TIM_W = CLAMP(wl, 10, pwm_res-10);
+    LEFT_TIM->LEFT_TIM_U = CLAMP(ul+80, 10, pwm_res-10);
+    LEFT_TIM->LEFT_TIM_V = CLAMP(vl+80, 10, pwm_res-10);
+    LEFT_TIM->LEFT_TIM_W = CLAMP(wl+80, 10, pwm_res-10);
   }
   else {
     // Motor stoped -> use trapezoidal commutation
@@ -487,9 +487,9 @@ void DMA1_Channel1_IRQHandler() {
   if( isr_cnt < motorr_comm_isr_cnt + 2000 ) {
     // Motor moving -> use sinusoidal commutation
     blockPWMsin(motorr_dir, pwmr, motorr_tbl_index, &ur, &vr, &wr);
-    RIGHT_TIM->RIGHT_TIM_U = CLAMP(ur, 10, pwm_res-10);
-    RIGHT_TIM->RIGHT_TIM_V = CLAMP(vr, 10, pwm_res-10);
-    RIGHT_TIM->RIGHT_TIM_W = CLAMP(wr, 10, pwm_res-10);
+    RIGHT_TIM->RIGHT_TIM_U = CLAMP(ur+80, 10, pwm_res-10);
+    RIGHT_TIM->RIGHT_TIM_V = CLAMP(vr+80, 10, pwm_res-10);
+    RIGHT_TIM->RIGHT_TIM_W = CLAMP(wr+80, 10, pwm_res-10);
   }
   else {
     // Motor stoped -> use trapezoidal commutation
