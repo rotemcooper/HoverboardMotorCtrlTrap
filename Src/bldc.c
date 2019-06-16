@@ -421,7 +421,7 @@ void DMA1_Channel1_IRQHandler() {
     motorl_speed = isr_cnt - posl_isr_cnt;
     posl_isr_cnt = isr_cnt;
 
-    motorl_comm_res = motorl_speed/COMM_PER_HALL_TICK;
+    motorl_comm_res = (motorl_speed/COMM_PER_HALL_TICK) + 1;
     motorl_comm_isr_cnt = isr_cnt + motorl_comm_res;
 
     motorl_tbl_index_next = (motorl_tbl_index + SIN_TBL_SIZE + COMM_PER_HALL_TICK*motorl_dir)%SIN_TBL_SIZE;  
@@ -433,7 +433,7 @@ void DMA1_Channel1_IRQHandler() {
     motorl_tbl_index = (motorl_tbl_index + SIN_TBL_SIZE + motorl_dir)%SIN_TBL_SIZE;    
   }
 
-  if( isr_cnt < motorl_comm_isr_cnt + 1000 ) {
+  if( isr_cnt < motorl_comm_isr_cnt + 2000 ) {
     // Motor moving -> use sinusoidal commutation
     blockPWMsin(motorl_dir, pwml, motorl_tbl_index, &ul, &vl, &wl);
     LEFT_TIM->LEFT_TIM_U = CLAMP(ul, 10, pwm_res-10);
@@ -447,7 +447,7 @@ void DMA1_Channel1_IRQHandler() {
     LEFT_TIM->LEFT_TIM_V = CLAMP(vl + pwm_res / 2, 10, pwm_res-10);
     LEFT_TIM->LEFT_TIM_W = CLAMP(wl + pwm_res / 2, 10, pwm_res-10);
   }
-    
+      
   // --------------------------------------------------------------------------------
   
   // Sinusoidal commutation logic - right motor
@@ -468,7 +468,7 @@ void DMA1_Channel1_IRQHandler() {
     motorr_speed = isr_cnt - posr_isr_cnt;
     posr_isr_cnt = isr_cnt;
 
-    motorr_comm_res = motorr_speed/COMM_PER_HALL_TICK;
+    motorr_comm_res = motorr_speed/COMM_PER_HALL_TICK + 1;
     motorr_comm_isr_cnt = isr_cnt + motorr_comm_res;
 
     motorr_tbl_index_next = (motorr_tbl_index + SIN_TBL_SIZE + COMM_PER_HALL_TICK*motorr_dir)%SIN_TBL_SIZE;  
@@ -479,8 +479,8 @@ void DMA1_Channel1_IRQHandler() {
     motorr_comm_isr_cnt = isr_cnt + motorr_comm_res;
     motorr_tbl_index = (motorr_tbl_index + SIN_TBL_SIZE + motorr_dir)%SIN_TBL_SIZE;    
   }
-/*
-  if( isr_cnt < motorr_comm_isr_cnt + 500 ) {
+
+  if( isr_cnt < motorr_comm_isr_cnt + 2000 ) {
     // Motor moving -> use sinusoidal commutation
     blockPWMsin(motorr_dir, pwmr, motorr_tbl_index, &ur, &vr, &wr);
     RIGHT_TIM->RIGHT_TIM_U = CLAMP(ur, 10, pwm_res-10);
@@ -489,22 +489,17 @@ void DMA1_Channel1_IRQHandler() {
   }
   else {
     // Motor stoped -> use trapezoidal commutation
-    blockPWM((pwmr*1000)/2000, posr, &ur, &vr, &wr);
+    blockPWM(motorr_dir, (pwmr*1000)/2000, posr, &ur, &vr, &wr);
     RIGHT_TIM->RIGHT_TIM_U = CLAMP(ur + pwm_res / 2, 10, pwm_res-10);
     RIGHT_TIM->RIGHT_TIM_V = CLAMP(vr + pwm_res / 2, 10, pwm_res-10);
     RIGHT_TIM->RIGHT_TIM_W = CLAMP(wr + pwm_res / 2, 10, pwm_res-10);
   }
-  //blockPWM(pwmr, posr, &ur, &vr, &wr);
-  //blockPWMsin(motorr_dir, pwmr, motorr_tbl_index, &ur, &vr, &wr);
-  */
-  //update PWM channels based on position
-  //pwmr = CLAMP(pwmr, -200, 200);
-
+/*
   blockPWM(motorr_dir, (pwmr*1000)/2000, posr, &ur, &vr, &wr);
   RIGHT_TIM->RIGHT_TIM_U = CLAMP(ur + pwm_res / 2, 10, pwm_res-10);
   RIGHT_TIM->RIGHT_TIM_V = CLAMP(vr + pwm_res / 2, 10, pwm_res-10);
   RIGHT_TIM->RIGHT_TIM_W = CLAMP(wr + pwm_res / 2, 10, pwm_res-10);
-  
+ */ 
   // ------------------------------------------------------------------------------------
   
   //create square wave for buzzer
