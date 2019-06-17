@@ -307,10 +307,7 @@ class Motor {
   // ---------------------------------------------------------------------------------
   
   inline void torque( int16_t value ) {
-    //rotemc complete
-    //if( value >= -400 && value <= 600 ) {
-      *pwm = -value;
-    //}
+    *pwm = -value;
   }
 
   // ---------------------------------------------------------------------------------
@@ -663,7 +660,7 @@ class Cable {
         torque += prf->addPull;
         //rotemc torque += dirComp( 0 );
       }
-      //torque -= motor->hall.accel()/4;              
+      torque -= motor->hall.accel()/4;                   
     }
     else {  
       torque *= prf->multRel;
@@ -672,10 +669,10 @@ class Cable {
         torque += DIRECTION_COMP; //rotemc dirComp( 0 /*DIRECTION_COMP*/ );        
       }
       torque -= speed;
-      //torque -= motor->hall.accel()*4;           
+      torque -= motor->hall.accel()/4;           
     }
     torque -= speed; // *1
-    torque -= motor->hall.accel()/3; ///4; // /4; 
+    //torque -= motor->hall.accel()/4; // /4; 
     
     if( (distance < 3) || 
         (distance > 30 && speed <= 0) )

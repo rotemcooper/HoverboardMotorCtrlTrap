@@ -285,7 +285,7 @@ inline void blockPWMsin(int dir, int pwm, int pos, int *u, int *v, int *w) {
   ut_tbl[last_sin_idx] = *u;
   #endif
 
-  if( dir < 0 ) {
+  if( dir < 0 && pwm < 0) {
     pos = (pos + SIN_TBL_SIZE + offset_pull)%SIN_TBL_SIZE;
   }
   #if 0
