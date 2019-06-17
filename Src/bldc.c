@@ -437,14 +437,14 @@ void DMA1_Channel1_IRQHandler() {
     motorl_tbl_index = sin_tbl_index(motorl_tbl_index, motorl_dir);    
   }
 
-  if( isr_cnt < motorl_comm_isr_cnt + 2000 ) {
+  /*if( isr_cnt < motorl_comm_isr_cnt + 2000 ) {
     // Motor moving -> use sinusoidal commutation
     blockPWMsin(motorl_dir, pwml, motorl_tbl_index, &ul, &vl, &wl);
     LEFT_TIM->LEFT_TIM_U = CLAMP(ul+80, 10, pwm_res-10);
     LEFT_TIM->LEFT_TIM_V = CLAMP(vl+80, 10, pwm_res-10);
     LEFT_TIM->LEFT_TIM_W = CLAMP(wl+80, 10, pwm_res-10);
   }
-  else {
+  else*/ {
     // Motor stoped -> use trapezoidal commutation
     blockPWM(motorl_dir, (pwml*1000)/2000, posl, &ul, &vl, &wl);
     LEFT_TIM->LEFT_TIM_U = CLAMP(ul + pwm_res / 2, 10, pwm_res-10);
@@ -484,26 +484,21 @@ void DMA1_Channel1_IRQHandler() {
     motorr_tbl_index = (motorr_tbl_index + SIN_TBL_SIZE + motorr_dir)%SIN_TBL_SIZE;    
   }
 
-  /*if( isr_cnt < motorr_comm_isr_cnt + 2000 ) {
+  if( isr_cnt < motorr_comm_isr_cnt + 2000 ) {
     // Motor moving -> use sinusoidal commutation
     blockPWMsin(motorr_dir, pwmr, motorr_tbl_index, &ur, &vr, &wr);
     RIGHT_TIM->RIGHT_TIM_U = CLAMP(ur+80, 10, pwm_res-10);
     RIGHT_TIM->RIGHT_TIM_V = CLAMP(vr+80, 10, pwm_res-10);
     RIGHT_TIM->RIGHT_TIM_W = CLAMP(wr+80, 10, pwm_res-10);
   }
-  else*/ {
+  else {
     // Motor stoped -> use trapezoidal commutation
     blockPWM(motorr_dir, (pwmr*1000)/2000, posr, &ur, &vr, &wr);
     RIGHT_TIM->RIGHT_TIM_U = CLAMP(ur + pwm_res / 2, 10, pwm_res-10);
     RIGHT_TIM->RIGHT_TIM_V = CLAMP(vr + pwm_res / 2, 10, pwm_res-10);
     RIGHT_TIM->RIGHT_TIM_W = CLAMP(wr + pwm_res / 2, 10, pwm_res-10);
   }
-/*
-  blockPWM(motorr_dir, (pwmr*1000)/2000, posr, &ur, &vr, &wr);
-  RIGHT_TIM->RIGHT_TIM_U = CLAMP(ur + pwm_res / 2, 10, pwm_res-10);
-  RIGHT_TIM->RIGHT_TIM_V = CLAMP(vr + pwm_res / 2, 10, pwm_res-10);
-  RIGHT_TIM->RIGHT_TIM_W = CLAMP(wr + pwm_res / 2, 10, pwm_res-10);
- */ 
+
   // ------------------------------------------------------------------------------------
   
   //create square wave for buzzer

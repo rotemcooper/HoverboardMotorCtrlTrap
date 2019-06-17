@@ -671,10 +671,11 @@ class Cable {
         torque += prf->addRel;
         torque += DIRECTION_COMP; //rotemc dirComp( 0 /*DIRECTION_COMP*/ );        
       }
+      torque -= speed;
       //torque -= motor->hall.accel()*4;           
     }
     torque -= speed; // *1
-    torque -= motor->hall.accel()/4; // /4; 
+    torque -= motor->hall.accel()/3; ///4; // /4; 
     
     if( (distance < 3) || 
         (distance > 30 && speed <= 0) )
@@ -686,7 +687,7 @@ class Cable {
       torque = 0;
     }
     
-    torque = max( torque, -400 ); //rotemc
+    torque = max( torque, -450 ); //rotemc
     return torque;
     //motor->torqueSmooth( torque );
   }
@@ -984,6 +985,7 @@ class Machine {
         return true;
 
       case '-':
+        Serial.read();
         prf->addPull -= 10;
         prf->addRel -= 10;
         return true;  
