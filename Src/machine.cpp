@@ -6,9 +6,6 @@
 //#include "stm32f1xx_hal.h"
 
 
-//extern "C" uint32_t millis(void);
-
-
 // ---------------------------------------------------------------------------------------
 // --------------------------------------- Externs ---------------------------------------
 // ---------------------------------------------------------------------------------------
@@ -23,8 +20,9 @@ extern "C" void main_health_check(void);
 extern "C" void poweroff(void);
 extern "C" int uart_get_char( char* c );
 extern "C" int uart_peek( char* c );
+extern "C" uint32_t HAL_GetTick(void);
 
-//extern "C" uint32_t _millis;
+#define WINDBACK_TORQUE 250 //150
 
 // ---------------------------------------------------------------------------------
 // Wiring
@@ -106,10 +104,8 @@ void delay( int ms ) {
   HAL_Delay( ms );
 }
 
-//extern "C" uint32_t HAL_GetTick(void);
 uint32_t millis() {
-    //return _millis;
-    return HAL_GetTick();
+  return HAL_GetTick();
 } 
 
 //int digitalRead( int pin ) {
@@ -665,7 +661,7 @@ class Cable {
       torque *= prf->multPull;
       if( torque != 0 ) {
         torque += prf->addPull;
-        torque += dirComp( 0 );
+        //rotemc torque += dirComp( 0 );
       }
       //torque -= motor->hall.accel()/4;              
     }
@@ -673,7 +669,7 @@ class Cable {
       torque *= prf->multRel;
       if( torque != 0 ) {
         torque += prf->addRel;
-        torque += dirComp( 0 /*DIRECTION_COMP*/ );        
+        torque += DIRECTION_COMP; //rotemc dirComp( 0 /*DIRECTION_COMP*/ );        
       }
       //torque -= motor->hall.accel()*4;           
     }
@@ -823,7 +819,7 @@ class Machine {
   void strengthTest()
   {
     static const int convTbl[][2] = { {225, 30}, {300, 35}, {350, 40}, {400, 45}, {450, 50}, {500, 55}, {600, 60}, {750, 65}, {0, 0} };
-    motors.windBack( 150 );
+    motors.windBack( WINDBACK_TORQUE );
     motors.reset();
     Motor* motor = &motors.right;
     Motor* motorOther = &motors.left;
@@ -851,27 +847,18 @@ class Machine {
     int ticks = motor->hall.ticks();
     int torque = 150;
     int torqueMax = torque;
-    int i=0;
+    uint32_t step_start = millis();
     while( continueWorkout() && motor->hall.ticks() > 50 && ticks > 50 &&
          (motor->hall.ticks() + 50) > ticks )
     {
       Serial.printf("Strength test torque=%d\n", torque );
       motor->torqueSmooth( torque );
-      motorOther->torqueSmooth( 150 );
-      if( i%1000 == 0 ) {
-        torque += 10;
-        torqueMax = max( torqueMax, torque );        
-      }
-      /*
-      for(int i=0; i<100; i++) {
-        motor->hall.ticks();
-        motorOther->hall.ticks();
-        motor->torqueSmooth( torque );
-        motorOther->torqueSmooth( 150 );        
+      //motorOther->torqueSmooth( 150 );
+      if( millis() > step_start + 100 ) {
+        step_start = millis();
+        torqueMax = max( torqueMax, torque );
+        torque += 10;             
       }      
-      torqueMax = max( torqueMax, torque );
-      torque += 10;
-      */
     }
 
     int poundMax = convTbl[0][1];
@@ -1060,7 +1047,7 @@ class Machine {
     while(1)
     {
       while( !Serial.available() ) {
-        motors.windBack( 150 );
+        motors.windBack( WINDBACK_TORQUE );
         motors.reset();
         workout( prf );        
       }

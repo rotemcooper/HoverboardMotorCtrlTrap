@@ -63,9 +63,9 @@ inline void blockPWM(int dir, int pwm, int pos, int *u, int *v, int *w) {
   //return;
   //rotemc
 
-  if( dir > 0 ) {
+  /*if( dir > 0 ) {
     pwm -= 100; //rotemc 200;
-  }  
+  }*/  
   
   switch(pos) {
     case 0:
@@ -288,7 +288,7 @@ inline void blockPWMsin(int dir, int pwm, int pos, int *u, int *v, int *w) {
   if( dir < 0 ) {
     pos = (pos + SIN_TBL_SIZE + offset_pull)%SIN_TBL_SIZE;
   }
-  #if 1
+  #if 0
   else if( dir > 0 ) {
     pwm -= 100;//rotemc 200;
   }
@@ -484,14 +484,14 @@ void DMA1_Channel1_IRQHandler() {
     motorr_tbl_index = (motorr_tbl_index + SIN_TBL_SIZE + motorr_dir)%SIN_TBL_SIZE;    
   }
 
-  if( isr_cnt < motorr_comm_isr_cnt + 2000 ) {
+  /*if( isr_cnt < motorr_comm_isr_cnt + 2000 ) {
     // Motor moving -> use sinusoidal commutation
     blockPWMsin(motorr_dir, pwmr, motorr_tbl_index, &ur, &vr, &wr);
     RIGHT_TIM->RIGHT_TIM_U = CLAMP(ur+80, 10, pwm_res-10);
     RIGHT_TIM->RIGHT_TIM_V = CLAMP(vr+80, 10, pwm_res-10);
     RIGHT_TIM->RIGHT_TIM_W = CLAMP(wr+80, 10, pwm_res-10);
   }
-  else {
+  else*/ {
     // Motor stoped -> use trapezoidal commutation
     blockPWM(motorr_dir, (pwmr*1000)/2000, posr, &ur, &vr, &wr);
     RIGHT_TIM->RIGHT_TIM_U = CLAMP(ur + pwm_res / 2, 10, pwm_res-10);
