@@ -22,7 +22,7 @@ extern "C" int uart_get_char( char* c );
 extern "C" int uart_peek( char* c );
 extern "C" uint32_t HAL_GetTick(void);
 
-#define WINDBACK_TORQUE 250 //150
+#define WINDBACK_TORQUE 250
 
 // ---------------------------------------------------------------------------------
 // Wiring
