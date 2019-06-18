@@ -802,6 +802,31 @@ class Machine {
     }   
   }
 
+  void windBack( int torque )
+  {
+    int rightTicks = motors.right.hall.ticks();;
+    int leftTicks = motors.left.hall.ticks();;
+    uint32_t check_time = millis();
+    bool done = false;
+
+    // Continue to apply torque as long as motors are turning.
+    while( continueWorkout() && !done ) {
+      Serial.printf("Windback torque=%d\n", torque);
+      motors.torqueSmooth( torque );
+      if( millis() > check_time + 250 ) {
+        check_time = millis();
+        if( rightTicks <= motors.right.hall.ticks() &&
+            leftTicks <= motors.left.hall.ticks() )
+        {
+          done = true;
+        }
+        rightTicks = motors.right.hall.ticks();
+        leftTicks = motors.left.hall.ticks();
+      }      
+    } 
+    motors.torque( 0 );
+  }
+
    // ---------------------------------------------------------------------------------
 
   void printCmd( char cmd )
@@ -1046,7 +1071,7 @@ class Machine {
     while(1)
     {
       while( !Serial.available() ) {
-        motors.windBack( WINDBACK_TORQUE );
+        windBack( WINDBACK_TORQUE );
         motors.reset();
         workout( prf );        
       }
