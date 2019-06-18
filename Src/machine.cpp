@@ -779,7 +779,7 @@ class Machine {
         // Print ticks, distance, torque, etc.
         Serial.printf("cnt=%d, prf=%s, add=%d/%d, mult=%d/%d, ticks=%d/%d, dist=%d/%d, speed=%d/%d, accel=%d/%d, torque=%d/%d\n",
                      cnt++, prf->name, prf->addPull, prf->addRel, prf->multPull, prf->multRel, motors.right.hall.ticks(), motors.left.hall.ticks(),
-                     rightCable.dist(), leftCable.dist(), motors.right.hall.speed(), motors.left.hall.speed(),
+                     rightCable.distRaw(), leftCable.distRaw(), motors.right.hall.speed(), motors.left.hall.speed(),
                      motors.right.hall.accel()/10, motors.left.hall.accel()/10, rightCable.torq(), leftCable.torq() );
       }
     }
@@ -873,14 +873,14 @@ class Machine {
     uint32_t step_start = millis();
     while( continueWorkout() && motor->hall.ticks() > 50 && ticks > 50 &&
          (motor->hall.ticks() + 50) > ticks )
-    {
-      Serial.printf("Strength test torque=%d\n", torque );
+    {      
       motor->torqueSmooth( torque );
       //motorOther->torqueSmooth( 150 );
       if( millis() > step_start + 100 ) {
         step_start = millis();
         torqueMax = max( torqueMax, torque );
-        torque += 10;             
+        torque += 10;
+        Serial.printf("Strength test torque=%d\n", torque );             
       }      
     }
 
