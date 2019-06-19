@@ -292,21 +292,21 @@ void hallSensorsTest()
 class Motor {
   private:
   volatile int* pwm;
-  int16_t valueLast;
-  int16_t valueSent;  
-
+  int valueLast;
+  
   public:
   Hall hall;
   Motor( volatile int* motor_ticks_prm, volatile int* pwm_prm ) :
     pwm( pwm_prm ),
     valueLast( 0 ),
-    valueSent( 0 ),
-    hall( motor_ticks_prm ) {
-    }
-
-  // ---------------------------------------------------------------------------------
+    hall( motor_ticks_prm ) {}
+   
+  inline int torqueLast() { return valueLast; }
   
+  // ---------------------------------------------------------------------------------
+
   inline void torque( int16_t value ) {
+    valueLast = value;
     *pwm = -value;
   }
 
@@ -333,11 +333,7 @@ class Motor {
       valueLast -= 1;     
     }
 
-    //if( valueSent != valueLast ) {
-    //  valueSent = valueLast;
-      torque( valueLast );   
-    //}
-     
+    torque( valueLast );
   }
 
   // ---------------------------------------------------------------------------------
@@ -1035,14 +1031,14 @@ class Machine {
         return true;      
       
       default:
-        return debug();
+        return config();
     }
-    return false;  
+    return false;
   }
 
   // ---------------------------------------------------------------------------------
 
-  bool debug() {
+  bool config() {
     if( !Serial.available() ) {
       return true;
     }
@@ -1150,6 +1146,58 @@ class Machine {
       }    
     }
   }
+
+  void debug()
+  {
+    Motor* motor = &motors.right;
+    
+    //waitForStart();
+    motors.reset();
+    while(1)
+    {
+      while( !Serial.available() ) {
+        main_health_check();
+        HAL_Delay( DELAY_IN_MAIN_LOOP );
+      }
+      
+      int input = Serial.read();
+      Serial.printf("received %c\n", input );
+      switch( input )
+      {
+        case '\n':
+        case '\r':
+          break;
+        
+        case '0':
+          motors.torque(0);
+          break;
+        
+        case 'r':
+          motor = &motors.right;
+          break;  
+        
+        case 'l':
+          motor = &motors.left;
+          break;
+
+        case '+':
+          motor->torque( motor->torqueLast() + 10 );
+          break;
+
+        case '-':
+          motor->torque( motor->torqueLast() - 10 );
+          break;
+      
+        case 'q':
+          poweroff();
+          break;       
+        
+        default:
+          Serial.printf("received invalid input\n");
+          break;
+      }    
+    }
+  }
 };
 
 // ---------------------------------------------------------------------------------
@@ -1161,24 +1209,8 @@ Machine machine;
 
 extern "C" void machine_main(void)
 {
-  /*
-  while( 1 ) {
-    main_health_check(); //rotemc
-    HAL_Delay( DELAY_IN_MAIN_LOOP ); //rotemc
-    
-    if( Serial.available() ) {
-      char input = Serial.peek();
-      switch( input )
-      {
-        case 'q':
-        poweroff();
-        break;
-      }
-      Serial.write( Serial.read() );
-    }
-  }
-  */
   machine.main();
+  //machine.debug();
 }
 
 /*
