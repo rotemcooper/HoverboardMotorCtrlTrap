@@ -316,7 +316,10 @@ class Motor {
 
   void torqueSmooth( int16_t value ) {
     int diff = value - valueLast;
-    if( diff >= 4 ) {
+    if( diff >= 8 ) {
+      valueLast += 8;        
+    }
+    else if( diff >= 4 ) {
       valueLast += 4;        
     }
     else if( diff >= 2 ) {
@@ -324,6 +327,9 @@ class Motor {
     }
     else if( diff >= 1 ) {
       valueLast += 1;        
+    }
+    else if( diff <= -8 ) {
+      valueLast -= 8;     
     }
     else if( diff <= -4 ) {
       valueLast -= 4;     
@@ -981,7 +987,7 @@ class Machine {
   bool continueWorkout()
   {
     main_health_check(); //rotemc
-    HAL_Delay( 1 /*DELAY_IN_MAIN_LOOP*/ ); //rotemc
+    HAL_Delay( 2 /*DELAY_IN_MAIN_LOOP*/ ); //rotemc
     
     if( !Serial.available() ) {
       return true;
@@ -1222,8 +1228,8 @@ Machine machine;
 
 extern "C" void machine_main(void)
 {
-  //machine.main();
-  machine.debug();
+  machine.main();
+  //machine.debug();
 }
 
 /*

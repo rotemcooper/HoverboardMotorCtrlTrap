@@ -307,7 +307,7 @@ inline void blockPWMsin(int dir, int pwm, int pos, int *u, int *v, int *w) {
     *v= (int) (((uint64_t) pwm * (uint64_t) sin_tbl[(pos +   ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE])/100000000);
     *u= (int) (((uint64_t) pwm * (uint64_t) sin_tbl[(pos + 2*ONE_3RD_SIN_TBL_SIZE) % SIN_TBL_SIZE])/100000000);                        
     pwm *= -1;
-  }  
+  }
 
   #if 0
   v_tbl[last_sin_idx] = *v;
