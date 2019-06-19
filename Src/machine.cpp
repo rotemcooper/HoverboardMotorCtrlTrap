@@ -1151,8 +1151,9 @@ class Machine {
   {
     Motor* motor = &motors.right;
     
+    Serial.printf("************ DEBUG MODE ************\n" );
     //waitForStart();
-    motors.reset();
+    motors.reset();    
     while(1)
     {
       while( !Serial.available() ) {
@@ -1161,10 +1162,13 @@ class Machine {
       }
       
       int input = Serial.read();
-      Serial.printf("received %c\n", input );
+      Serial.printf("%c", input );
       switch( input )
       {
         case '\n':
+          Serial.printf("trq=%d/%d\n", motors.right.torqueLast(), motors.left.torqueLast() );
+          break;
+
         case '\r':
           break;
         
@@ -1195,7 +1199,7 @@ class Machine {
         default:
           Serial.printf("received invalid input\n");
           break;
-      }    
+      }      
     }
   }
 };
@@ -1209,8 +1213,8 @@ Machine machine;
 
 extern "C" void machine_main(void)
 {
-  machine.main();
-  //machine.debug();
+  //machine.main();
+  machine.debug();
 }
 
 /*
