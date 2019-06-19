@@ -12,6 +12,8 @@ volatile int pwmr = 0;
 volatile int weakl = 0;
 volatile int weakr = 0;
 
+volatile int pwm_offset = 80;
+
 extern volatile int speed;
 
 extern volatile adc_buf_t adc_buffer;
@@ -483,13 +485,13 @@ void DMA1_Channel1_IRQHandler() {
     motorr_comm_isr_cnt = isr_cnt + motorr_comm_res;
     motorr_tbl_index = (motorr_tbl_index + SIN_TBL_SIZE + motorr_dir)%SIN_TBL_SIZE;    
   }
-
+//#define OFFSET 10
   if( isr_cnt < motorr_comm_isr_cnt + 2000 ) {
     // Motor moving -> use sinusoidal commutation
     blockPWMsin(motorr_dir, pwmr, motorr_tbl_index, &ur, &vr, &wr);
-    RIGHT_TIM->RIGHT_TIM_U = CLAMP(ur+80, 10, pwm_res-10);
-    RIGHT_TIM->RIGHT_TIM_V = CLAMP(vr+80, 10, pwm_res-10);
-    RIGHT_TIM->RIGHT_TIM_W = CLAMP(wr+80, 10, pwm_res-10);
+    RIGHT_TIM->RIGHT_TIM_U = CLAMP(ur+pwm_offset, 10, pwm_res-10);
+    RIGHT_TIM->RIGHT_TIM_V = CLAMP(vr+pwm_offset, 10, pwm_res-10);
+    RIGHT_TIM->RIGHT_TIM_W = CLAMP(wr+pwm_offset, 10, pwm_res-10);
   }
   else {
     // Motor stoped -> use trapezoidal commutation

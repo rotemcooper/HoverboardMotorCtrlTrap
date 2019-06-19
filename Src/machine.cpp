@@ -14,6 +14,7 @@ extern "C" volatile int motorl_ticks;
 extern "C" volatile int motorr_ticks;
 extern "C" volatile int pwml;  // global variable for pwm left. -1000 to 1000
 extern "C" volatile int pwmr;  // global variable for pwm right. -1000 to 1000
+extern "C" volatile int pwm_offset;
 extern "C" int offset_pull;
 
 extern "C" void main_health_check(void);
@@ -21,6 +22,7 @@ extern "C" void poweroff(void);
 extern "C" int uart_get_char( char* c );
 extern "C" int uart_peek( char* c );
 extern "C" uint32_t HAL_GetTick(void);
+
 
 #define WINDBACK_TORQUE 250
 
@@ -1149,6 +1151,7 @@ class Machine {
 
   void debug()
   {
+    char val;
     Motor* motor = &motors.right;
     
     Serial.printf("************ DEBUG MODE ************\n" );
@@ -1166,7 +1169,7 @@ class Machine {
       switch( input )
       {
         case '\n':
-          Serial.printf("trq=%d/%d\n", motors.right.torqueLast(), motors.left.torqueLast() );
+          Serial.printf("pwm_offset=%d, trq=%d/%d\n", pwm_offset, motors.right.torqueLast(), motors.left.torqueLast() );
           break;
 
         case '\r':
@@ -1190,6 +1193,12 @@ class Machine {
 
         case '-':
           motor->torque( motor->torqueLast() - 10 );
+          break;
+
+        case 'o':
+          val = Serial.read();
+          if( val == '+') pwm_offset += 10;
+          if( val == '-') pwm_offset -= 10;
           break;
       
         case 'q':
