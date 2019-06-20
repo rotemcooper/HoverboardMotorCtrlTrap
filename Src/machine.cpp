@@ -16,6 +16,7 @@ extern "C" volatile int pwml;  // global variable for pwm left. -1000 to 1000
 extern "C" volatile int pwmr;  // global variable for pwm right. -1000 to 1000
 extern "C" volatile int pwm_offset;
 extern "C" int offset_pull;
+extern "C" volatile float batteryVoltage; // global variable for battery voltage
 
 extern "C" void main_health_check(void);
 extern "C" void poweroff(void);
@@ -62,7 +63,7 @@ extern UART_HandleTypeDef huart2;
 
 class HardwareSerial {
   private:
-  char buffer[256];
+  char buffer[356];
 
   public:
   bool available() {
@@ -320,7 +321,7 @@ class Motor {
     int sign = (diff >= 0? 1: -1);
     diff *= sign;
         
-    for( int i=0; i<ARRAY_SIZE(tbl); i++ ) {
+    for( uint i=0; i<ARRAY_SIZE(tbl); i++ ) {
       if( diff >= tbl[i] ) {
         valueLast += sign*tbl[i];
         torque( valueLast );
@@ -798,7 +799,7 @@ class Machine {
         Serial.printf("cnt=%d, prf=%s, add=%d/%d, mult=%d/%d, ticks=%d/%d, dist=%d/%d, speed=%d/%d, accel=%d/%d, torque=%d/%d\n",
                      cnt++, prf->name, prf->addPull, prf->addRel, prf->multPull, prf->multRel, motors.right.hall.ticks(), motors.left.hall.ticks(),
                      rightCable.distRaw(), leftCable.distRaw(), motors.right.hall.speed(), motors.left.hall.speed(),
-                     motors.right.hall.accel()/10, motors.left.hall.accel()/10, rightCable.torq(), leftCable.torq() );
+                     motors.right.hall.accel()/10, motors.left.hall.accel()/10, rightCable.torq(), leftCable.torq() /*(uint) 10*batteryVoltage*/ );
       }
     }
   }

@@ -538,10 +538,8 @@ int main(void) {
 
 /** Check system health (temp, battery, etc.) and power off if needed.
 */
-void main_health_check(void) {
-  
-  timeout = 0;
-  
+void main_health_check(void) {  
+  timeout = 0;  
   // ####### POWEROFF BY POWER-BUTTON #######
   if (HAL_GPIO_ReadPin(BUTTON_PORT, BUTTON_PIN) && weakr == 0 && weakl == 0) {
     enable = 0;
@@ -554,17 +552,23 @@ void main_health_check(void) {
   board_temp_deg_c = ((float)TEMP_CAL_HIGH_DEG_C - (float)TEMP_CAL_LOW_DEG_C) / ((float)TEMP_CAL_HIGH_ADC - (float)TEMP_CAL_LOW_ADC) * (board_temp_adc_filtered - (float)TEMP_CAL_LOW_ADC) + (float)TEMP_CAL_LOW_DEG_C;
       
   // ####### BEEP AND EMERGENCY POWEROFF #######  
-  if ((TEMP_POWEROFF_ENABLE && board_temp_deg_c >= TEMP_POWEROFF && abs(speed) < 20) || (batteryVoltage < ((float)BAT_LOW_DEAD * (float)BAT_NUMBER_OF_CELLS) && abs(speed) < 20)) {  // poweroff before mainboard burns OR low bat 3
+  if ((TEMP_POWEROFF_ENABLE && board_temp_deg_c >= TEMP_POWEROFF && abs(speed) < 20) /* || (batteryVoltage < ((float)BAT_LOW_DEAD * (float)BAT_NUMBER_OF_CELLS) && abs(speed) < 20)*/ ) {  // poweroff before mainboard burns OR low bat 3
     poweroff();
   } else if (TEMP_WARNING_ENABLE && board_temp_deg_c >= TEMP_WARNING) {  // beep if mainboard gets hot
     buzzerFreq = 4;
     buzzerPattern = 1;
-  } else if (batteryVoltage < ((float)BAT_LOW_LVL1 * (float)BAT_NUMBER_OF_CELLS) && batteryVoltage > ((float)BAT_LOW_LVL2 * (float)BAT_NUMBER_OF_CELLS) && BAT_LOW_LVL1_ENABLE) {  // low bat 1: slow beep
+  } 
+  else if( batteryVoltage < ((float)BAT_LOW_DEAD * (float)BAT_NUMBER_OF_CELLS) ) {
+    buzzerFreq = 5;
+    buzzerPattern = 6;
+  }
+  
+  else if (batteryVoltage < ((float)BAT_LOW_LVL1 * (float)BAT_NUMBER_OF_CELLS) && batteryVoltage > ((float)BAT_LOW_LVL2 * (float)BAT_NUMBER_OF_CELLS) && BAT_LOW_LVL1_ENABLE) {  // low bat 1: slow beep
     //rotemc buzzerFreq = 5;
     //rotemc buzzerPattern = 42;
-  } else if (batteryVoltage < ((float)BAT_LOW_LVL2 * (float)BAT_NUMBER_OF_CELLS) && batteryVoltage > ((float)BAT_LOW_DEAD * (float)BAT_NUMBER_OF_CELLS) && BAT_LOW_LVL2_ENABLE) {  // low bat 2: fast beep
+  } else if (batteryVoltage < ((float)BAT_LOW_LVL2 * (float)BAT_NUMBER_OF_CELLS) /*&& batteryVoltage > ((float)BAT_LOW_DEAD * (float)BAT_NUMBER_OF_CELLS) && BAT_LOW_LVL2_ENABLE*/) {  // low bat 2: fast beep
     //rotemc buzzerFreq = 5;
-    //rotemc buzzerPattern = 6;
+    // rotemc buzzerPattern = 6;
   } else if (BEEPS_BACKWARD && speed < -50) {  // backward beep
     buzzerFreq = 5;
     buzzerPattern = 1;
