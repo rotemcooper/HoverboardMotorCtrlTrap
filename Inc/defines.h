@@ -145,6 +145,7 @@
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define MIN3(a, b, c) MIN(a, MIN(b, c))
 #define MAX3(a, b, c) MAX(a, MAX(b, c))
+#define ARRAY_SIZE( arr ) (sizeof(arr) / sizeof(arr[0]) )
 
 typedef struct {
   uint16_t rr1;

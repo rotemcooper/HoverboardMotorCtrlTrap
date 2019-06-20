@@ -315,7 +315,20 @@ class Motor {
   // ---------------------------------------------------------------------------------
 
   void torqueSmooth( int16_t value ) {
+    static const int tbl[] = { 12, 8, 4, 2, 1 };
     int diff = value - valueLast;
+    int sign = (diff >= 0? 1: -1);
+    diff *= sign;
+        
+    for( int i=0; i<ARRAY_SIZE(tbl); i++ ) {
+      if( diff >= tbl[i] ) {
+        valueLast += sign*tbl[i];
+        torque( valueLast );
+        return;
+      }
+    }
+
+    /*
     if( diff >= 8 ) {
       valueLast += 8;        
     }
@@ -342,6 +355,7 @@ class Motor {
     }
 
     torque( valueLast );
+    */
   }
 
   // ---------------------------------------------------------------------------------
