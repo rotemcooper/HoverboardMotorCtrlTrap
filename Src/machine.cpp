@@ -27,6 +27,10 @@ extern "C" uint32_t HAL_GetTick(void);
 
 #define WINDBACK_TORQUE 250
 
+int trqAlpha=9;
+
+
+
 // ---------------------------------------------------------------------------------
 // Wiring
 // Teensy UART Tx to be connected to light blue next to black wire on Hoverboard
@@ -316,6 +320,7 @@ class Motor {
   // ---------------------------------------------------------------------------------
 
   void torqueSmooth( int16_t value ) {
+    /*
     static const int tbl[] = { 12, 8, 4, 2, 1 };
     int diff = value - valueLast;
     int sign = (diff >= 0? 1: -1);
@@ -328,6 +333,9 @@ class Motor {
         return;
       }
     }
+    */
+    valueLast = (trqAlpha*valueLast + value) / (trqAlpha+1);
+    torque( valueLast );
 
     /*
     if( diff >= 8 ) {
@@ -794,7 +802,7 @@ class Machine {
       {
         printCnt=0;
         cnt++;
-        
+                
         // Print ticks, distance, torque, etc.
         Serial.printf("cnt=%d, prf=%s, add=%d/%d, mult=%d/%d, ticks=%d/%d, dist=%d/%d, speed=%d/%d, accel=%d/%d, torque=%d/%d\n",
                      cnt++, prf->name, prf->addPull, prf->addRel, prf->multPull, prf->multRel, motors.right.hall.ticks(), motors.left.hall.ticks(),
@@ -1067,6 +1075,7 @@ class Machine {
     }
 
     switch( Serial.peek() ) {
+      /*
       case 'a':
         offset_pull++;
         Serial.read();
@@ -1077,6 +1086,21 @@ class Machine {
         offset_pull--;
         Serial.read();
         Serial.printf( "offset_pull = %d\n, ", offset_pull );
+        return true;
+      */
+
+      case 'a':
+        trqAlpha++;
+        Serial.read();
+        Serial.printf( "trqAlpha= %d\n, ", trqAlpha );
+        delay( 250 );
+        return true;
+        
+      case 'z':
+        if( trqAlpha > 0 ) trqAlpha--;
+        Serial.read();
+        Serial.printf( "trqAlpha= %d\n, ", trqAlpha );
+        delay( 250 );
         return true;
     }
     return false;
