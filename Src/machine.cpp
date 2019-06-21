@@ -25,9 +25,14 @@ extern "C" int uart_peek( char* c );
 extern "C" uint32_t HAL_GetTick(void);
 
 
+
+// ---------------------------------------------------------------------------------
+// -------------------------- Configuration Parameters -----------------------------
+// ---------------------------------------------------------------------------------
+
 #define WINDBACK_TORQUE 250
 
-int trqAlpha=9;
+int TORQUE_IIR=9;
 
 
 
@@ -320,6 +325,9 @@ class Motor {
   // ---------------------------------------------------------------------------------
 
   void torqueSmooth( int16_t value ) {
+    valueLast = (TORQUE_IIR*valueLast + value) / (TORQUE_IIR+1);
+    torque( valueLast );
+    
     /*
     static const int tbl[] = { 12, 8, 4, 2, 1 };
     int diff = value - valueLast;
@@ -333,9 +341,7 @@ class Motor {
         return;
       }
     }
-    */
-    valueLast = (trqAlpha*valueLast + value) / (trqAlpha+1);
-    torque( valueLast );
+    */    
 
     /*
     if( diff >= 8 ) {
@@ -1090,17 +1096,17 @@ class Machine {
       */
 
       case 'a':
-        trqAlpha++;
+        TORQUE_IIR++;
         Serial.read();
-        Serial.printf( "trqAlpha= %d\n, ", trqAlpha );
-        delay( 250 );
+        Serial.printf( "TORQUE_IIR= %d\n, ", TORQUE_IIR );
+        delay( 400 );
         return true;
         
       case 'z':
-        if( trqAlpha > 0 ) trqAlpha--;
+        if( TORQUE_IIR > 0 ) TORQUE_IIR--;
         Serial.read();
-        Serial.printf( "trqAlpha= %d\n, ", trqAlpha );
-        delay( 250 );
+        Serial.printf( "TORQUE_IIR= %d\n, ", TORQUE_IIR );
+        delay( 400 );
         return true;
     }
     return false;
