@@ -31,8 +31,8 @@ extern "C" uint32_t HAL_GetTick(void);
 // ---------------------------------------------------------------------------------
 
 #define WINDBACK_TORQUE 250
-
-int TORQUE_IIR=9;
+int torque_iir = 9;
+extern "C" volatile int trap_offset;
 
 
 
@@ -325,7 +325,7 @@ class Motor {
   // ---------------------------------------------------------------------------------
 
   void torqueSmooth( int16_t value ) {
-    valueLast = (TORQUE_IIR*valueLast + value) / (TORQUE_IIR+1);
+    valueLast = (torque_iir*valueLast + value) / (torque_iir+1);
     torque( valueLast );
     
     /*
@@ -1081,31 +1081,26 @@ class Machine {
     }
 
     switch( Serial.peek() ) {
-      /*
+      
       case 'a':
-        offset_pull++;
         Serial.read();
-        Serial.printf( "offset_pull = %d\n, ", offset_pull );
-        return true;            
-          
-      case 'z':
-        offset_pull--;
-        Serial.read();
-        Serial.printf( "offset_pull = %d\n, ", offset_pull );
-        return true;
-      */
-
-      case 'a':
-        TORQUE_IIR++;
-        Serial.read();
-        Serial.printf( "TORQUE_IIR= %d\n, ", TORQUE_IIR );
+        //offset_pull++;
+        //torque_iir++;
+        if( trap_offset < 150 ) trap_offset++;        
+        //Serial.printf( "offset_pull = %d\n, ", offset_pull );
+        //Serial.printf( "torque_iir= %d\n, ", torque_iir );
+        Serial.printf( "trap_offset= %d\n, ", trap_offset );
         delay( 400 );
         return true;
         
       case 'z':
-        if( TORQUE_IIR > 0 ) TORQUE_IIR--;
         Serial.read();
-        Serial.printf( "TORQUE_IIR= %d\n, ", TORQUE_IIR );
+        //offset_pull--;
+        //if( torque_iir > 0 ) torque_iir--;
+        if( trap_offset > 0 ) trap_offset--;        
+        //Serial.printf( "offset_pull = %d\n, ", offset_pull );
+        //Serial.printf( "torque_iir= %d\n, ", torque_iir );
+        Serial.printf( "trap_offset= %d\n, ", trap_offset );
         delay( 400 );
         return true;
     }

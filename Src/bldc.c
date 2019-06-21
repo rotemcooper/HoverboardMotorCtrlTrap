@@ -12,7 +12,7 @@ volatile int pwmr = 0;
 volatile int weakl = 0;
 volatile int weakr = 0;
 
-volatile int pwm_offset = 80;
+
 
 extern volatile int speed;
 
@@ -25,7 +25,16 @@ uint32_t buzzerPattern = 0;
 
 uint8_t enable = 0;
 
-const int pwm_res = 64000000 / 2 / PWM_FREQ; // = 2000
+// ---------------------------------------------------------------------------------
+// -------------------------- Configuration Parameters -----------------------------
+// ---------------------------------------------------------------------------------
+
+const int pwm_res = 64000000 / 2 / PWM_FREQ;  // = 2000
+volatile int offset_pull=12;        // Commutation offset when motor acting as a brake
+const int pwm_offset = 80;          // PWM offset from 0 - lowest PWM value
+volatile int trap_offset = 50;     // trapezoidal vs sinusoidal PWM offset
+
+// --------------------------------------------------------------------------------
 
 const uint8_t hall_to_pos[8] = {
     0, //000
@@ -276,8 +285,6 @@ volatile int vt_tbl[SIN_TBL_SIZE] = {0};
 volatile int wt_tbl[SIN_TBL_SIZE] = {0};
 volatile int ut_tbl[SIN_TBL_SIZE] = {0};
 
-volatile int offset_pull=12;
-
 inline void blockPWMsin(int dir, int pwm, int pos, int *u, int *v, int *w) {
   
   #if 0
@@ -287,6 +294,7 @@ inline void blockPWMsin(int dir, int pwm, int pos, int *u, int *v, int *w) {
   ut_tbl[last_sin_idx] = *u;
   #endif
 
+  // When motor acting as a brake, advance commutation point by offset_pull.
   if( dir < 0 && pwm < 0) {
     pos = (pos + SIN_TBL_SIZE + offset_pull)%SIN_TBL_SIZE;
   }
@@ -495,7 +503,7 @@ void DMA1_Channel1_IRQHandler() {
   }
   else {
     // Motor stoped -> use trapezoidal commutation
-    blockPWM(motorr_dir, (pwmr*1000)/2000, posr, &ur, &vr, &wr);
+    blockPWM(motorr_dir, (pwmr*trap_offset)/100, posr, &ur, &vr, &wr);
     RIGHT_TIM->RIGHT_TIM_U = CLAMP(ur + pwm_res / 2, 10, pwm_res-10);
     RIGHT_TIM->RIGHT_TIM_V = CLAMP(vr + pwm_res / 2, 10, pwm_res-10);
     RIGHT_TIM->RIGHT_TIM_W = CLAMP(wr + pwm_res / 2, 10, pwm_res-10);
