@@ -498,7 +498,7 @@ void motorsUpDownTest( int max )
 // Specifies 8 bits resistance value for each cable pull distance in cm.
  
 #define W1 50
- byte weight_tbl[] = {/*0,   0,   0,   0,   0,   0,   0,   0,*/  0,   0,
+ byte weight_tbl[] = {/*0,   0,   0,   0,   0,   0,   0,   0,*/  15,  15,
                        W1,  W1,  W1,  W1,  W1,  W1,  W1,  W1,  W1,  W1,
                        W1,  W1,  W1,  W1,  W1,  W1,  W1,  W1,  W1,  W1,
                        W1,  W1,  W1,  W1,  W1,  W1,  W1,  W1,  W1,  W1,
