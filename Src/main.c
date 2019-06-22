@@ -23,6 +23,8 @@
 #include "defines.h"
 #include "setup.h"
 #include "config.h"
+#include <stdarg.h>
+
 //#include "hd44780.h"
 
 void SystemClock_Config(void);
@@ -126,7 +128,20 @@ int uart_peek( char* c ) {
 	*c = uart_rx_buff[rx_index];
 	return 1;
 }
-//rotemc
+
+//-------------------------------------------------------------------------------------------
+
+int uart_printf( const char *format, ...) {
+    static char buffer[256];
+    va_list args;
+    va_start (args, format);
+    int len = vsprintf (buffer, format, args);
+    HAL_UART_Transmit( &huart2, (uint8_t*) buffer, len, 200);
+    va_end (args);
+    return len;
+}
+
+//-------------------------------------------------------------------------------------------
 
 void poweroff(void) {
     if (abs(speed) < 20) {
@@ -137,7 +152,14 @@ void poweroff(void) {
             HAL_Delay(100);
         }
         HAL_GPIO_WritePin(OFF_PORT, OFF_PIN, 0);
-        while(1) {}
+        while(1) {
+          char c;
+          if( uart_peek(&c) ) {
+            uart_printf( "%c", c );
+            //HAL_GPIO_WritePin(OFF_PORT, OFF_PIN, 1);
+            //return;
+          }
+        }
     }
 }
 

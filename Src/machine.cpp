@@ -72,7 +72,7 @@ extern UART_HandleTypeDef huart2;
 
 class HardwareSerial {
   private:
-  char buffer[356];
+  char buffer[256];
 
   public:
   bool available() {
