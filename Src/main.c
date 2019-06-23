@@ -154,8 +154,12 @@ void poweroff(void) {
         HAL_GPIO_WritePin(OFF_PORT, OFF_PIN, 0);
         while(1) {
           char c;
-          if( uart_peek(&c) ) {
-            uart_printf( "%c", c );
+          if( uart_get_char(&c) ) {
+            // uart_printf( "%c", c );
+            if( c == 'n') {
+              HAL_GPIO_WritePin(OFF_PORT, OFF_PIN, 1);
+              NVIC_SystemReset();
+            }
             //HAL_GPIO_WritePin(OFF_PORT, OFF_PIN, 1);
             //return;
           }
@@ -178,6 +182,7 @@ extern int offset_pull;
 //rotemc
 float board_temp_adc_filtered;
 float board_temp_deg_c;
+
 
 int main(void) {
   HAL_Init();
