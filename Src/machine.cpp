@@ -342,35 +342,6 @@ class Motor {
       }
     }
     */    
-
-    /*
-    if( diff >= 8 ) {
-      valueLast += 8;        
-    }
-    else if( diff >= 4 ) {
-      valueLast += 4;        
-    }
-    else if( diff >= 2 ) {
-      valueLast += 2;        
-    }
-    else if( diff >= 1 ) {
-      valueLast += 1;        
-    }
-    else if( diff <= -8 ) {
-      valueLast -= 8;     
-    }
-    else if( diff <= -4 ) {
-      valueLast -= 4;     
-    }
-    else if( diff <= -2 ) {
-      valueLast -= 2;     
-    }
-    else if( diff <= -1 ) {
-      valueLast -= 1;     
-    }
-
-    torque( valueLast );
-    */
   }
 
   // ---------------------------------------------------------------------------------
