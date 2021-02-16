@@ -664,7 +664,8 @@ class Cable {
         torque += prf->addPull;
         //rotemc torque += dirComp( 0 );
       }
-      torque -= motor->hall.accel()/4;                   
+      torque -= speed;  //speed
+      torque -= motor->hall.accel()/4; //8              
     }
     else {  
       torque *= prf->multRel;
@@ -672,10 +673,10 @@ class Cable {
         torque += prf->addRel;
         torque += DIRECTION_COMP; //rotemc dirComp( 0 /*DIRECTION_COMP*/ );        
       }
-      torque -= speed;
-      torque -= motor->hall.accel()/4;           
+      torque -= (speed*3)/2; //1
+      torque -= motor->hall.accel()/5;//4; //6; // 8;           
     }
-    torque -= speed; // *1
+    //torque -= speed; // *1
     //torque -= motor->hall.accel()/4; // /4; 
     
     if( (distance < 3) || 
@@ -1179,10 +1180,11 @@ class Machine {
       while( !Serial.available() ) {
         main_health_check();
         HAL_Delay( DELAY_IN_MAIN_LOOP );
+        //Serial.printf("got here\n");
       }
       
       int input = Serial.read();
-      Serial.printf("%c", input );
+      Serial.printf("%c\n", input );
       switch( input )
       {
         case '\n':
@@ -1240,6 +1242,7 @@ Machine machine;
 extern "C" void machine_main(void)
 {
   machine.main();
+
   //machine.debug();
 }
 

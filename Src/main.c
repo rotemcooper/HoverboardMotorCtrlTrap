@@ -221,6 +221,10 @@ int main(void) {
   HAL_ADC_Start(&hadc1);
   HAL_ADC_Start(&hadc2);
 
+//rotemc - wait for power button PCF_I2C_ADDRESS
+//while ( !HAL_GPIO_ReadPin(BUTTON_PORT, BUTTON_PIN) )
+//{}
+
   for (int i = 8; i >= 0; i--) {
     buzzerFreq = i;
     HAL_Delay(100);
