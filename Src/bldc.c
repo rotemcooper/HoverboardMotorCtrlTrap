@@ -30,9 +30,16 @@ uint8_t enable = 0;
 // ---------------------------------------------------------------------------------
 
 const int pwm_res = 64000000 / 2 / PWM_FREQ;  // = 2000
-volatile int offset_pull=12;        // Commutation offset when motor acting as a brake
+// 21.5cm motor
+volatile int offset_pull=16;        // Commutation offset for pulling
+volatile int offset_rel=3;          // Commutation offset for releasing 
+
+// 12cm motor
+//volatile int offset_pull=12;        // Commutation offset for pulling
+//volatile int offset_rel=0;          // Commutation offset for releasing
+
 const int pwm_offset = 80;          // PWM offset from 0 - lowest PWM value
-volatile int trap_offset = 50;     // trapezoidal vs sinusoidal PWM offset
+volatile int trap_offset = 50;      // trapezoidal vs sinusoidal PWM offset
 
 // --------------------------------------------------------------------------------
 
@@ -294,16 +301,16 @@ inline void blockPWMsin(int dir, int pwm, int pos, int *u, int *v, int *w) {
   ut_tbl[last_sin_idx] = *u;
   #endif
 
-  // When motor acting as a brake, advance commutation point by offset_pull.
   if( dir < 0 && pwm < 0) {
+    // When pulling (motor acting as a brake) advance commutation point by offset_pull.
     pos = (pos + SIN_TBL_SIZE + offset_pull)%SIN_TBL_SIZE;
   }
-  #if 0
   else if( dir > 0 ) {
-    pwm -= 100;//rotemc 200;
+    // When releasing advance commutation point by offset_rel.
+    pos = (pos + SIN_TBL_SIZE + offset_rel)%SIN_TBL_SIZE;
+    //pwm -= 100;//rotemc 200;
   }
-  #endif  
-
+  
   // Integer table math
   if( pwm >= 0 ) {
     *v= (int) (((uint64_t) pwm * (uint64_t) sin_tbl[pos])/100000000);
@@ -395,12 +402,14 @@ void DMA1_Channel1_IRQHandler() {
 
   uint8_t halll = hall_ul * 1 + hall_vl * 2 + hall_wl * 4;
   posl          = hall_to_pos[halll];
-  posl += 2;
+  posl += 1; // 21.5 cm motor
+  //posl += 2; // 12 cm motor
   posl %= 6;
 
   uint8_t hallr = hall_ur * 1 + hall_vr * 2 + hall_wr * 4;
   posr          = hall_to_pos[hallr];
-  posr += 2;
+  posr += 1; // 21.5 cm motor
+  // posr += 2; // 12 cm motor
   posr %= 6;
   
   //rotemc
@@ -416,7 +425,7 @@ void DMA1_Channel1_IRQHandler() {
   }
   */
   // -----------------------------------------------------------------------------
-
+  
   // Sinusoidal commutation logic - left motor
   if( posl != posl_last ) {
     //posl_no_change_cntr = 0;
@@ -456,6 +465,7 @@ void DMA1_Channel1_IRQHandler() {
     LEFT_TIM->LEFT_TIM_W = CLAMP(wl+pwm_offset, 10, pwm_res-10);
   }
   else {
+    
     // Motor stoped -> use trapezoidal commutation
     blockPWM(motorl_dir, (pwml*trap_offset)/100, posl, &ul, &vl, &wl);
     LEFT_TIM->LEFT_TIM_U = CLAMP(ul + pwm_res / 2, 10, pwm_res-10);

@@ -555,7 +555,9 @@ WorkoutPrf v_prf( "V-Shape", 0, 0, 4, 4, sizeof(vee_tbl), vee_tbl );
 
 // Geometry
 #define TICKS_PER_ROTATION 89.0
-#define WHEEL_DIAMETER 12.5
+//#define WHEEL_DIAMETER (12.5 / 2) // Plastic cable drum
+#define WHEEL_DIAMETER (12.5) // Hoverboard cable drum
+//#define WHEEL_DIAMETER (21.5) // ebike cable drum
 #define DIRECTION_COMP 100
 
 class Cable {
@@ -659,25 +661,46 @@ class Cable {
     speedPrev = speed;
     
     if( direction == DIRECTION_PULL ) {
+      // Pulling
       torque *= prf->multPull;
       if( torque != 0 ) {
         torque += prf->addPull;
         //rotemc torque += dirComp( 0 );
       }
-      torque -= speed;  //speed
-      torque -= motor->hall.accel()/4; //8              
+      // 21.5 cm drum
+      torque -= speed;
+      //torque -= motor->hall.accel()/4;
+
+      // 12.5 cm drum
+      //torque -= speed;
+      //torque -= motor->hall.accel()/4;
+
+      // 6.25 cm drum
+      //torque -= (speed);
+      //torque -= motor->hall.accel()/3;
     }
+
     else {  
+      // Releasing
       torque *= prf->multRel;
       if( torque != 0 ) {
         torque += prf->addRel;
         torque += DIRECTION_COMP; //rotemc dirComp( 0 /*DIRECTION_COMP*/ );        
       }
+
+      // 21.5 cm drum
       torque -= (speed*3)/2; //1
-      torque -= motor->hall.accel()/5;//4; //6; // 8;           
-    }
-    //torque -= speed; // *1
-    //torque -= motor->hall.accel()/4; // /4; 
+      //torque -= motor->hall.accel()/5;
+      
+      // 12.5 cm drum
+      //torque -= (speed*3)/2; //1
+      //torque -= motor->hall.accel()/5;
+
+      // 6.25 cm drum
+      //torque -= (2*speed); 
+      //torque -= motor->hall.accel()/5;
+
+    }    
     
     if( (distance < 3) || 
         (distance > 30 && speed <= 0) )
@@ -1180,7 +1203,7 @@ class Machine {
       while( !Serial.available() ) {
         main_health_check();
         HAL_Delay( DELAY_IN_MAIN_LOOP );
-        //Serial.printf("got here\n");
+        //Serial.printf("ticks=%d\n", motors.left.hall.ticks());
       }
       
       int input = Serial.read();
@@ -1216,8 +1239,12 @@ class Machine {
 
         case 'o':
           val = Serial.read();
-          if( val == '+') pwm_offset += 10;
-          if( val == '-') pwm_offset -= 10;
+          if( val == '+') offset_pull++;
+          if( val == '-') offset_pull--;
+          Serial.printf("offset=%d\n", offset_pull );
+
+          //if( val == '+') pwm_offset += 10;
+          //if( val == '-') pwm_offset -= 10;
           break;
       
         case 'q':
@@ -1241,9 +1268,9 @@ Machine machine;
 
 extern "C" void machine_main(void)
 {
-  machine.main();
+  //machine.main();
 
-  //machine.debug();
+  machine.debug();
 }
 
 /*
