@@ -669,7 +669,7 @@ class Cable {
       }
       // 21.5 cm drum
       torque -= speed;
-      //torque -= motor->hall.accel()/4;
+      torque -= motor->hall.accel()/4;
 
       // 12.5 cm drum
       //torque -= speed;
@@ -690,7 +690,7 @@ class Cable {
 
       // 21.5 cm drum
       torque -= (speed*3)/2; //1
-      //torque -= motor->hall.accel()/5;
+      torque -= motor->hall.accel()/5;
       
       // 12.5 cm drum
       //torque -= (speed*3)/2; //1
@@ -1268,9 +1268,9 @@ Machine machine;
 
 extern "C" void machine_main(void)
 {
-  //machine.main();
+  machine.main();
 
-  machine.debug();
+  //machine.debug();
 }
 
 /*
