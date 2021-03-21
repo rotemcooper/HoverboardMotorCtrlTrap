@@ -554,10 +554,18 @@ WorkoutPrf v_prf( "V-Shape", 0, 0, 4, 4, sizeof(vee_tbl), vee_tbl );
 // ---------------------------------------------------------------------------------
 
 // Geometry
-#define TICKS_PER_ROTATION 89.0
-//#define WHEEL_DIAMETER (12.5 / 2) // Plastic cable drum
-#define WHEEL_DIAMETER (12.5) // Hoverboard cable drum
-//#define WHEEL_DIAMETER (21.5) // ebike cable drum
+
+// Plastic cable drum
+//#define WHEEL_DIAMETER (12.5 / 2) 
+
+// Hoverboard cable drum
+//#define WHEEL_DIAMETER (12.5)
+//#define TICKS_PER_ROTATION 89.0
+
+// ebike cable drum
+#define WHEEL_DIAMETER (21.5)
+#define TICKS_PER_ROTATION 138
+ 
 #define DIRECTION_COMP 100
 
 class Cable {
@@ -1203,7 +1211,7 @@ class Machine {
       while( !Serial.available() ) {
         main_health_check();
         HAL_Delay( DELAY_IN_MAIN_LOOP );
-        //Serial.printf("ticks=%d\n", motors.left.hall.ticks());
+        Serial.printf("ticks=%d\n", motors.left.hall.ticks());
       }
       
       int input = Serial.read();
